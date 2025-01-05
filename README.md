@@ -1,1 +1,0 @@
-# tabelog-lg.github.io
