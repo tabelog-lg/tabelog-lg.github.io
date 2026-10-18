@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进度文档解码/编码器</title>
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --primary: #4a6fa5;
+            --primary-hover: #3b5a8a;
+            --border: #cccccc;
+            --radius: 8px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        .mode-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .mode-selector label {
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        .mode-selector select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        .file-zone {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .file-upload-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+        .file-upload-label {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+        .file-upload-label:hover {
+            background: var(--primary-hover);
+        }
+        .file-upload-label input[type="file"] {
+            display: none;
+        }
+        .btn-download {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .btn-download:hover {
+            background: #1b5e20;
+        }
+        .btn-download:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+        }
+        .text-areas {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .text-panel label {
+            font-weight: 500;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            background: #fafafa;
+            transition: border 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+        }
+        .button-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn:hover {
+            background: #d0d0d0;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn:disabled {
+            background: #cccccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #c62828;
+            background: #ffebee;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .info-message {
+            color: #2e7d32;
+            background: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .file-zone {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 进度文档解码 / 编码器</h1>
+        <p class="subtitle">上传游戏进度文件，解码为可读文本；修改后重新编码并下载</p>
+
+        <!-- 模式选择 -->
+        <div class="mode-selector">
+            <label for="modeSelect">游戏模式：</label>
+            <select id="modeSelect">
+                <option value="survival" selected>生存模式 (survival)</option>
+                <option value="creative">创造模式 (creative)</option>
+            </select>
+            <span style="color:#666; font-size:0.85rem;">（编码/解码需一致）</span>
+        </div>
+
+        <!-- 文件操作区 -->
+        <div class="file-zone">
+            <div class="file-upload-wrapper">
+                <label class="file-upload-label">
+                    📂 上传进度文档文件
+                    <input type="file" id="fileInput" accept=".txt,.json,.dat,text/plain,application/json">
+                </label>
+            </div>
+            <button id="btnDownload" class="btn-download" disabled>⬇️ 下载编码结果</button>
+        </div>
+
+        <!-- 文本区域 -->
+        <div class="text-areas">
+            <div class="text-panel">
+                <label for="encodedText">📄 编码文档（进度字符串）</label>
+                <textarea id="encodedText" placeholder="将编码进度文档粘贴到这里，或上传文件自动填充..."></textarea>
+            </div>
+            <div class="text-panel">
+                <label for="jsonText">🔍 解码后的 JSON 文本（可编辑）</label>
+                <textarea id="jsonText" placeholder="点击“解码”按钮生成 JSON 文本，可修改后重新编码..."></textarea>
+            </div>
+            <div class="text-panel">
+                <label for="proofText">📜 证明项输出</label>
+                <textarea id="proofText" placeholder="点击“提取证明项”按钮生成..." readonly></textarea>
+            </div>
+        </div>
+
+        <!-- 按钮行 -->
+        <div class="button-row">
+            <button id="btnDecode" class="btn btn-primary">🔓 解码 → JSON</button>
+            <button id="btnEncode" class="btn btn-secondary">🔒 编码 → 进度文档</button>
+            <button id="btnExtractProofs" class="btn">📜 提取证明项</button>
+            <button id="btnClear" class="btn">🧹 清空</button>
+        </div>
+
+        <!-- 错误/信息显示 -->
+        <div id="errorMsg" class="error-message"></div>
+        <div id="infoMsg" class="info-message"></div>
+
+        <div class="footer">
+            基于游戏内部序列化逻辑 | 不依赖游戏环境
+        </div>
+    </div>
+
+    <script>
+
+// ==================== 基础映射表（与游戏一致） ====================
+const splittor = "-(=)-";
+const dict = {
+    ',"aE0","aPair","aPow","aUnion","areg","arepl","asep","ainf",': "a#`",
+    '"0","1","2","3","4","5","6","7","8","9","10"': "b#`",
+    '"Union","Pow","S"': "c#`",
+    ',"apn1","apn2","apn3","d1","d2","d3","d4","d5","d6","d7","d8","d9",': "d#`",
+    '","2,2,4,2,': '@`',
+    '3,3,3,3,': '3`',
+    '2,2,2,2,2,2,': '6`',
+    '1,1,1,1,1,1,': '1`',
+    '2,2,2,1,2,': '5`',
+    '素食主义者（累计获40µg推理素）': '4#`',
+    '你推出你，他推出他（⊢$0>$0）': '2#`',
+    '我推出你，你推出我（<>）': '=#`',
+    '我给且只给所有不自己理发的人理发': 'Q#`',
+    '会跑的“⊢”（演绎元定理）': '3#`',
+    '第一次消费': '1#`',
+    '[["progL","[ach]解锁了成就",': 'h`',
+    '","[ach]': '2`',
+    '","录制*",[["': '*`',
+    ',["mp",[': 'm`',
+    '],[]]]],"': '[`',
+    '",[],["': '{`',
+    '","a': 'a`',
+    '","d': 'd`',
+    '],[]],["': ']`',
+    '",[-1],[': '-`',
+    '","元规则生成*",[["': 'M`',
+    '5`3,1,2,3,2,': ',`',
+    '"]],["': '.`',
+    ')<>(': '=`',
+    '.<>': 'q`',
+    '",[-1]`': 'z`',
+};
+
+const replaceArr1 = Object.entries(dict);           // 编码正向
+const replaceArr2 = replaceArr1.slice(0).reverse(); // 解码反向
+
+// ==================== 随机数生成器 ====================
+class Rnd {
+    constructor(x) { this.x = x >>> 0; }
+    next() {
+        this.x = ((this.x + 0x19da44d9) + (this.x << 8)) >>> 0;
+        this.x = (this.x ^ (this.x >>> 4)) >>> 0;
+        this.x = ((this.x * 0xb5502e5) + (this.x >>> 0)) >>> 0;
+        return (this.x >>> 0) / 0x100000000;
+    }
+}
+
+// ==================== 洗牌与中文处理 ====================
+class Shuffle {
+    static shuffleArray(array, randomFunction) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(randomFunction.next() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    static shuffleArrayReverse(array, randomFunction) {
+        const nums = new Array(array.length).fill(0).map((_, i) => i);
+        Shuffle.shuffleArray(nums, randomFunction);
+        const res = new Array(array.length);
+        for (const [i, j] of nums.entries()) {
+            res[j] = array[i];
+        }
+        return res.join("");
+    }
+
+    static replaceZh(a) {
+        let r = "";
+        for (let i = 0; i < a.length; i++) {
+            if (a.charCodeAt(i) > 0xFF) {
+                r += "U`" + a.charCodeAt(i).toString(36) + ".";
+            } else {
+                r += a[i];
+            }
+        }
+        return r;
+    }
+
+    static recoverZh(a) {
+        let r = a[0];
+        let code = "?";
+        for (let i = 1; i < a.length; i++) {
+            if (code !== "?") {
+                if (a[i] !== ".") {
+                    code += a[i];
+                } else {
+                    r = r.slice(0, -1);
+                    r += String.fromCharCode(Number.parseInt(code, 36));
+                    code = "?";
+                }
+            } else if (a[i] === "`" && a[i - 1] === "U") {
+                code = "";
+            } else {
+                r += a[i];
+            }
+        }
+        return r;
+    }
+}
+
+// ==================== 核心编码/解码函数 ====================
+function encodeProgressDoc(jsonStr, mode = 'survival') {
+    let processed = jsonStr;
+    for (const [a, b] of replaceArr1) {
+        processed = processed.replaceAll(a, b);
+    }
+    processed = Shuffle.replaceZh(processed);
+    const seed = (mode === 'survival') ? processed.length : (processed.length - 1);
+    const rnd = new Rnd(seed);
+    const shuffled = Shuffle.shuffleArray(Array.from(processed), rnd);
+    return shuffled.join("");
+}
+
+function decodeProgressDoc(encodedStr, mode = 'survival') {
+    const seed = (mode === 'survival') ? encodedStr.length : (encodedStr.length - 1);
+    const rnd = new Rnd(seed);
+    const unshuffled = Shuffle.shuffleArrayReverse(Array.from(encodedStr), rnd);
+    const recoveredZh = Shuffle.recoverZh(unshuffled);
+    let result = recoveredZh;
+    for (const [a, b] of replaceArr2) {
+        result = result.replaceAll(b, a);
+    }
+    return result;
+}
+
+// ==================== DOM 交互逻辑 ====================
+const encodedTextarea = document.getElementById('encodedText');
+const jsonTextarea = document.getElementById('jsonText');
+const proofTextarea = document.getElementById('proofText');
+const modeSelect = document.getElementById('modeSelect');
+const fileInput = document.getElementById('fileInput');
+const btnDecode = document.getElementById('btnDecode');
+const btnEncode = document.getElementById('btnEncode');
+const btnExtractProofs = document.getElementById('btnExtractProofs');
+const btnClear = document.getElementById('btnClear');
+const btnDownload = document.getElementById('btnDownload');
+const errorMsg = document.getElementById('errorMsg');
+const infoMsg = document.getElementById('infoMsg');
+
+// 显示错误
+function showError(message) {
+    errorMsg.textContent = message;
+    errorMsg.style.display = 'block';
+    infoMsg.style.display = 'none';
+}
+
+// 显示信息
+function showInfo(message) {
+    infoMsg.textContent = message;
+    infoMsg.style.display = 'block';
+    errorMsg.style.display = 'none';
+}
+
+// 清除消息
+function clearMessages() {
+    errorMsg.style.display = 'none';
+    infoMsg.style.display = 'none';
+}
+
+// 文件上传处理
+fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        encodedTextarea.value = ev.target.result;
+        clearMessages();
+        showInfo(`已加载文件：${file.name}`);
+        // 自动解码
+        decodeAction();
+    };
+    reader.onerror = function() {
+        showError('文件读取失败');
+    };
+    reader.readAsText(file);
+    // 重置 input 以便再次选择同一文件
+    fileInput.value = '';
+});
+
+// 解码按钮
+btnDecode.addEventListener('click', decodeAction);
+
+function decodeAction() {
+    clearMessages();
+    const encoded = encodedTextarea.value.trim();
+    if (!encoded) {
+        showError('请先输入或上传编码文档');
+        return;
+    }
+    const mode = modeSelect.value;
+    try {
+        const decoded = decodeProgressDoc(encoded, mode);
+        jsonTextarea.value = decoded;
+        showInfo('解码成功！现在可以编辑 JSON 文本。');
+        btnDownload.disabled = true;
+    } catch (e) {
+        showError('解码失败：' + e.message);
+        console.error(e);
+    }
+}
+
+// 编码按钮
+btnEncode.addEventListener('click', function() {
+    clearMessages();
+    const json = jsonTextarea.value;
+    if (!json) {
+        showError('JSON 文本框为空，请先解码或粘贴 JSON 内容');
+        return;
+    }
+    const mode = modeSelect.value;
+    try {
+        const encoded = encodeProgressDoc(json, mode);
+        encodedTextarea.value = encoded;
+        showInfo('编码成功！可以下载编码结果。');
+        btnDownload.disabled = false;
+    } catch (e) {
+        showError('编码失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// 清空按钮
+btnClear.addEventListener('click', function() {
+    encodedTextarea.value = '';
+    jsonTextarea.value = '';
+    proofTextarea.value = '';
+    btnDownload.disabled = true;
+    clearMessages();
+});
+
+// 下载按钮
+btnDownload.addEventListener('click', function() {
+    const content = encodedTextarea.value;
+    if (!content) {
+        showError('没有可下载的内容');
+        return;
+    }
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'progress_document.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showInfo('下载已开始');
+});
+
+// ==================== 证明项提取功能 ====================
+
+/*
+Fix 1: 去除硬编码 si
+Fix 2: 跳过 tag 为“元规则生成*”的定理
+Fix 3: 对定理证明项不限制为 3 项
+Fix 4: 对有序对出现在 hyp 中的情况特判
+*/
+
+// 判断一个值是否是单个定理定义：[sequent, tag, steps, ...]
+// 只要求前 3 项有效，后面的项忽略
+function isTheoremDef(v) {
+    return Array.isArray(v) && v.length >= 3
+        && typeof v[0] === 'string'      // sequent
+        && typeof v[1] === 'string'      // tag
+        && Array.isArray(v[2]);          // steps
+}
+
+// 判断一个对象是否是定理映射：所有/部分值是定理定义
+function isTheoremMap(obj) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+    const keys = Object.keys(obj);
+    if (keys.length === 0) return false;
+    return keys.some(k => isTheoremDef(obj[k]));
+}
+
+// 在字符串中扫描所有独立的 JSON 对象（花括号配对，能跳过字符串内的括号）
+function findAllJsonObjects(s) {
+    const results = [];
+    let i = 0;
+    while (i < s.length) {
+        if (s[i] === '{') {
+            let depth = 0;
+            let inString = false;
+            let escape = false;
+            let j = i;
+            for (; j < s.length; j++) {
+                const c = s[j];
+                if (inString) {
+                    if (escape) escape = false;
+                    else if (c === '\\') escape = true;
+                    else if (c === '"') inString = false;
+                } else {
+                    if (c === '"') inString = true;
+                    else if (c === '{') depth++;
+                    else if (c === '}') {
+                        depth--;
+                        if (depth === 0) break;
+                    }
+                }
+            }
+            if (depth === 0 && j < s.length) {
+                results.push(s.slice(i, j + 1));
+                i = j + 1;
+                continue;
+            }
+        }
+        i++;
+    }
+    return results;
+}
+
+// 只按顶层逗号切分：括号内的逗号不分割
+// 例如 "($a1,$b1)=($a2,$b2),$c" 会得到 ["($a1,$b1)=($a2,$b2)", "$c"]
+function splitTopLevelCommas(s) {
+    const parts = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (c === '(') depth++;
+        else if (c === ')') depth--;
+        else if (c === ',' && depth === 0) {
+            parts.push(s.slice(start, i));
+            start = i + 1;
+        }
+    }
+    parts.push(s.slice(start));
+    return parts;
+}
+
+// 把单个定理转成证明项文本（只使用前 3 项）
+function convertTheorem(name, sequent, tag, steps) {
+    let output = `${name} ${sequent} ${tag}\n`;
+
+    let left = '';
+    if (sequent.includes('⊢')) {
+        left = sequent.split('⊢')[0];
+    } else {
+        left = sequent;
+    }
+    // 只按顶层逗号切分前提，避免把有序对 "($a1,$b1)" 拆开
+    const hyps = left.trim()
+        ? splitTopLevelCommas(left).map(s => s.trim()).filter(s => s.length > 0)
+        : [];
+
+    const lines = [];
+    for (const h of hyps) {
+        lines.push(`hyp ${h}`);
+    }
+
+    const base = hyps.length;
+    for (let i = 0; i < steps.length; i++) {
+        const [rule, refs, vars] = steps[i];
+        const currentLine = base + i;
+        const args = [];
+        for (const r of refs) {
+            if (r < 0) {
+                args.push(String(currentLine + r));
+            } else {
+                args.push(String(r));
+            }
+        }
+        if (Array.isArray(vars)) args.push(...vars);
+        if (args.length > 0) {
+            lines.push(`d ${rule} ${args.join(' ')}`);
+        } else {
+            lines.push(`d ${rule}`);
+        }
+    }
+    return output + lines.join('\n');
+}
+
+// 遍历定理映射对象，逐个转换（跳过 tag 为“元规则生成*”的定理）
+function processTheoremsObject(obj) {
+    const results = [];
+    for (const [name, value] of Object.entries(obj)) {
+        if (!isTheoremDef(value)) continue;
+        const [sequent, tag, steps] = value; // 只取前 3 项，忽略后续无关项
+        // 略过所有带有 元规则生成* 的证明
+        if (tag === '元规则生成*') continue;
+        results.push(convertTheorem(name, sequent, tag, steps));
+    }
+    return results.join('\n\n');
+}
+
+// 从解码后的完整文本中提取所有定理证明项
+function extractProofsFromDecoded(decoded) {
+    const candidates = findAllJsonObjects(decoded);
+    for (const str of candidates) {
+        let obj;
+        try {
+            obj = JSON.parse(str);
+        } catch (e) {
+            continue;
+        }
+        if (isTheoremMap(obj)) {
+            return processTheoremsObject(obj);
+        }
+    }
+    throw new Error('未找到包含定理定义的对象');
+}
+
+// 提取证明项按钮
+btnExtractProofs.addEventListener('click', function() {
+    clearMessages();
+    const decoded = jsonTextarea.value.trim();
+    if (!decoded) {
+        showError('请先解码或粘贴解码后的文本到 JSON 文本框');
+        return;
+    }
+    try {
+        const proofText = extractProofsFromDecoded(decoded);
+        proofTextarea.value = proofText;
+        showInfo('证明项提取成功！');
+    } catch (e) {
+        showError('提取证明项失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// 初始化
+btnDownload.disabled = true;
+clearMessages();
+
+    </script>
+</body>
+</html>

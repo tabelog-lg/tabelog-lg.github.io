@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本替换工具</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="replace.js"></script>
+</head>
+<body class="page-replace">
+
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔄</span> 文本替换工具
+            </h1>
+            <p>按顺序将左侧字符串替换为右侧字符串 · 实时预览</p>
+        </div>
+
+        <!-- 主区域 -->
+        <div class="main-area">
+            <!-- 输入框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 输入文本</label>
+                <textarea id="mainInput" placeholder="在此输入或粘贴要处理的文本..." spellcheck="false"></textarea>
+                <span class="char-count" id="inputCharCount">0 字符</span>
+            </div>
+
+            <!-- 输出框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 输出结果</label>
+                <textarea id="mainOutput" readonly placeholder="替换结果将实时显示在这里..." spellcheck="false"></textarea>
+                <span class="char-count" id="outputCharCount">0 字符</span>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="button-group">
+                <button class="btn btn-clear" id="clearBtn" title="清空输入和输出框，保留替换列表">
+                    🗑️ 清空
+                </button>
+                <button class="btn btn-copy" id="copyBtn" title="复制输出框内容到剪贴板">
+                    📋 复制到剪切板
+                </button>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 替换列表 -->
+        <div class="replace-section">
+            <div class="section-header">
+                <h2>
+                    ⚡ 替换规则
+                    <span class="badge" id="rowCountBadge">2 对</span>
+                </h2>
+                <span class="hint">💡 从上到下依次执行，留空"查找"则跳过该行</span>
+            </div>
+
+            <!-- 列标签 -->
+            <div class="list-labels">
+                <span>查找字符串</span>
+                <span>替换为</span>
+                <span></span>
+            </div>
+
+            <!-- 替换行容器 -->
+            <div class="replace-rows" id="replaceRows">
+                <!-- 由JS动态生成 -->
+            </div>
+
+            <!-- 添加按钮 -->
+            <button class="btn-add" id="addBtn" title="添加一行新的替换规则">
+                <span class="plus-icon">＋</span> 添加替换行
+            </button>
+        </div>
+    </div>
+</body>
+</html>

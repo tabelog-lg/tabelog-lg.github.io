@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公式格式转换工具</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="formula.js"></script>
+</head>
+<body class="page-formula">
+
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">∑</span> 公式格式转换
+            </h1>
+            <p>自动识别 Markdown / LaTeX / MathML 公式标记 · 一键统一风格 · 实时预览</p>
+        </div>
+
+        <!-- 主区域 -->
+        <div class="main-area">
+            <!-- 输入框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 输入文本</label>
+                <textarea id="mainInput" placeholder="在此输入或粘贴包含公式的文本..." spellcheck="false"></textarea>
+                <span class="char-count" id="inputCharCount">0 字符</span>
+            </div>
+
+            <!-- 输出框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 输出结果</label>
+                <textarea id="mainOutput" readonly placeholder="转换结果将实时显示在这里..." spellcheck="false"></textarea>
+                <span class="char-count" id="outputCharCount">0 字符</span>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="button-group">
+                <button class="btn btn-convert" id="convertBtn" title="按当前设置重新转换（输入变化时会自动转换）">
+                    🚀 转换
+                </button>
+                <button class="btn btn-clear" id="clearBtn" title="清空输入和输出框">
+                    🗑️ 清空
+                </button>
+                <button class="btn btn-copy" id="copyBtn" title="复制输出框内容到剪贴板（Ctrl+Enter）">
+                    📋 复制到剪切板
+                </button>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 设置区域 -->
+        <div class="options-section">
+            <div class="section-header">
+                <h2>
+                    ⚙️ 转换设置
+                    <span class="badge" id="formulaBadge">0 个公式</span>
+                </h2>
+                <span class="hint">💡 无论输入是哪种风格，都会被识别并统一转换为所选风格</span>
+            </div>
+
+            <!-- 目标风格 -->
+            <div class="option-row">
+                <span class="option-label">目标风格</span>
+                <div class="radio-group">
+                    <label class="radio-item active" data-style="markdown">
+                        <input type="radio" name="style" value="markdown" checked>
+                        <span class="radio-text">
+                            <span class="radio-title">Markdown</span>
+                            <span class="radio-desc">$...$ / $$...$$</span>
+                        </span>
+                    </label>
+                    <label class="radio-item" data-style="latex">
+                        <input type="radio" name="style" value="latex">
+                        <span class="radio-text">
+                            <span class="radio-title">LaTeX</span>
+                            <span class="radio-desc">\(...\) / \[...\]</span>
+                        </span>
+                    </label>
+                    <label class="radio-item" data-style="mathml">
+                        <input type="radio" name="style" value="mathml">
+                        <span class="radio-text">
+                            <span class="radio-title">MathML</span>
+                            <span class="radio-desc">&lt;math&gt;...&lt;/math&gt;</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 换行块级公式 -->
+            <div class="option-row">
+                <span class="option-label">块级格式</span>
+                <label class="checkbox-item checked" id="blockNewlineWrap">
+                    <input type="checkbox" id="blockNewline" checked>
+                    <span>
+                        换行块级公式
+                        <em>（内容与标记之间换行，如 \[ ⏎ ... ⏎ \]；MathML 下 &lt;math&gt;⏎...⏎&lt;/math&gt; 视为块级）</em>
+                    </span>
+                </label>
+            </div>
+
+            <!-- ★ 新增：删除 \tag{...} -->
+            <div class="option-row">
+                <span class="option-label">标签处理</span>
+                <label class="checkbox-item" id="removeTagWrap">
+                    <input type="checkbox" id="removeTag">
+                    <span>
+                        删除所有 \tag{...}
+                        <em>（移除公式编号标签，如 \tag{1}、\tag*{A}，支持花括号嵌套）</em>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

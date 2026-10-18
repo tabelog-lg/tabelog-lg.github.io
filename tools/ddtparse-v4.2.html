@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进度文档解码/编码器</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="ddtparse.js"></script>
+</head>
+<body class="page-ddtparse">
+
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔧</span> 进度文档解码 / 编码器
+            </h1>
+            <p>上传游戏进度文件，解码为可读文本 · 修改后重新编码并下载</p>
+        </div>
+
+        <!-- 游戏模式 -->
+        <div class="option-row">
+            <span class="option-label">游戏模式</span>
+            <select id="modeSelect">
+                <option value="survival" selected>生存模式 (survival)</option>
+                <option value="creative">创造模式 (creative)</option>
+            </select>
+            <span class="hint">💡 编码 / 解码需使用相同的模式</span>
+        </div>
+
+        <!-- ★ 新增：证明项 / 排列表 选项 -->
+        <div class="option-row">
+            <span class="option-label">证明选项</span>
+            <div class="checkbox-group" id="proofOptionGroup">
+                <label class="checkbox-item" title="编码/提取证明项时，附带用户自定义的推理规则（mc, mf, mprd）">
+                    <input type="checkbox" id="chkCustomRules" checked>
+                    <span>在证明项中加入自定义推理规则</span>
+                </label>
+                <label class="checkbox-item" title="生成排列表时，在名称后加入定理内容显示">
+                    <input type="checkbox" id="chkContentDisplay" checked>
+                    <span>在排列表中加入定理内容显示</span>
+                </label>
+                <label class="checkbox-item" title="编码/提取证明项时，显示该推理规则依赖的推理规则">
+                    <input type="checkbox" id="chkDependentRules" checked>
+                    <span>在证明项中加入依赖推理规则</span>
+                </label>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 文件操作区 -->
+        <div class="file-zone">
+            <label class="file-upload-label">
+                📂 上传进度文档文件
+                <input type="file" id="fileInput" accept=".txt,.json,.dat,text/plain,application/json">
+            </label>
+            <button id="btnDownload" class="btn btn-success" disabled>⬇️ 下载编码结果</button>
+        </div>
+
+        <!-- 主区域：编码文档 / 解码文本 -->
+        <div class="main-area">
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 编码文档（进度字符串）</label>
+                <textarea id="encodedText" placeholder="将编码进度文档粘贴到这里，或上传文件自动填充..." spellcheck="false"></textarea>
+            </div>
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 解码后的文本（可编辑）</label>
+                <textarea id="jsonText" placeholder="点击“解码”按钮生成解码文本，可修改后重新编码..." spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- 输出框 -->
+        <div class="textarea-wrapper full-width">
+            <label><span class="dot proof-dot"></span> 输出框（证明项 / 类型层证明项 / 排列表）</label>
+            <textarea id="proofText" class="output-area" placeholder="点击下方按钮生成对应内容..." readonly spellcheck="false"></textarea>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button id="btnDecode" class="btn btn-primary">🔓 解码 → 文本</button>
+            <button id="btnEncode" class="btn btn-secondary">🔒 编码 → 进度文档</button>
+            <button id="btnExtractProofs" class="btn btn-soft">📜 提取证明项</button>
+            <button id="btnExtractTypeProofs" class="btn btn-soft">🧩 提取类型层证明项</button>
+            <button id="btnShowArrangement" class="btn btn-soft">🌳 展示排列表</button>
+            <button id="btnClear" class="btn btn-clear">🧹 清空</button>
+        </div>
+
+        <!-- 错误 / 信息显示 -->
+        <div id="errorMsg" class="error-message"></div>
+        <div id="infoMsg" class="info-message"></div>
+
+        <div class="footer">
+            基于游戏内部序列化逻辑 | 不依赖游戏环境
+        </div>
+    </div>
+</body>
+
+<!--
+更新日志
+
+项目：进度文档解码 / 编码器（ddtparse）
+
+版本历史：
+- v1：ddtparse.html：存档编码-解码功能
+- v2：ddtparse_new.html：加入证明项提取功能
+- v2.1: 修复带有临时变量的证明项不会被提取的问题
+- v2.2: 修复假设中的有序对被错误切分的问题
+- v3：ddtparse_completely.html：加入类型层证明项提取与排列表显示
+- v3.1：ddtparse_completely_fixed.html：增加谓词、函数、常量定义的证明项提取显示；重制并优化页面风格
+- v4：加入选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则
+- v4.1: 修复 mcmt 中的 # 会被识别为依赖推理规则的问题
+- v4.2: 修复名称映射表、修改依赖推理规则提取
+-->
+
+</html>

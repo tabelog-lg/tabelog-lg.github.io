@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本替换工具</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #4a6cf7;
+            --primary-hover: #3b5de7;
+            --success: #22c55e;
+            --success-hover: #16a34a;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --border: #e5e7eb;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 4px 24px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', -apple-system, sans-serif;
+            background: var(--bg-color);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px 28px;
+            border: 1px solid var(--border);
+        }
+
+        /* ========== 标题 ========== */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .header h1 .icon {
+            font-size: 32px;
+        }
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        /* ========== 主区域：输入/输出 ========== */
+        .main-area {
+            display: flex;
+            gap: 20px;
+            align-items: stretch;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .textarea-wrapper {
+            flex: 1 1 0;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .textarea-wrapper label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .textarea-wrapper label .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot.input-dot {
+            background: var(--primary);
+        }
+        .dot.output-dot {
+            background: var(--success);
+        }
+
+        .textarea-wrapper textarea {
+            flex: 1;
+            min-height: 280px;
+            padding: 16px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            background: #fafbfc;
+            color: var(--text);
+            outline: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            tab-size: 4;
+        }
+        .textarea-wrapper textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+            background: #fff;
+        }
+        .textarea-wrapper textarea#mainOutput {
+            background: #f8faf9;
+            color: #1a3c34;
+        }
+        .textarea-wrapper textarea#mainOutput:focus {
+            border-color: var(--success);
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+            background: #fff;
+        }
+        .textarea-wrapper textarea::placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
+        .textarea-wrapper textarea[readonly] {
+            cursor: default;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .char-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 4px;
+            font-family: var(--font-mono);
+            opacity: 0.7;
+        }
+
+        /* ========== 按钮组 ========== */
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+            align-items: stretch;
+            padding: 0 4px;
+            min-width: 130px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn:focus-visible {
+            outline: 3px solid rgba(74, 108, 247, 0.4);
+            outline-offset: 2px;
+        }
+        .btn-clear {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 2px solid #fecaca;
+        }
+        .btn-clear:hover {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+        }
+        .btn-copy {
+            background: #ecfdf5;
+            color: var(--success);
+            border: 2px solid #a7f3d0;
+        }
+        .btn-copy:hover {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+        }
+        .btn-copy.copied {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+            animation: pop 0.35s ease;
+        }
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.06);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* ========== 分隔线 ========== */
+        .divider {
+            border: none;
+            border-top: 2px dashed var(--border);
+            margin: 8px 0 28px;
+        }
+
+        /* ========== 替换列表 ========== */
+        .replace-section {
+            margin-top: 4px;
+        }
+        .replace-section .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .replace-section .section-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .replace-section .section-header h2 .badge {
+            background: var(--primary);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+        .replace-section .section-header .hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* 列标题 */
+        .list-labels {
+            display: flex;
+            gap: 12px;
+            padding: 0 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .list-labels span {
+            flex: 1;
+            text-align: center;
+        }
+        .list-labels span:first-child {
+            text-align: left;
+        }
+        .list-labels span:last-child {
+            width: 44px;
+            flex: none;
+            text-align: right;
+        }
+
+        /* 替换行 */
+        .replace-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .replace-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .replace-row .row-input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            background: #fafbfc;
+            color: var(--text);
+        }
+        .replace-row .row-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.08);
+            background: #fff;
+        }
+        .replace-row .row-input::placeholder {
+            color: #b0b8c4;
+            font-style: italic;
+        }
+        .replace-row .row-input.find-input {
+            border-left: 3px solid var(--primary);
+        }
+        .replace-row .row-input.replace-input {
+            border-left: 3px solid var(--success);
+        }
+        .replace-row .row-arrow {
+            flex: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            opacity: 0.5;
+            user-select: none;
+            padding: 0 2px;
+        }
+
+        .btn-remove {
+            flex: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid #fecaca;
+            background: #fef2f2;
+            color: var(--danger);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-remove:hover {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.25);
+        }
+        .btn-remove:active {
+            transform: scale(0.9);
+        }
+        .btn-remove:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            background: #f3f4f6;
+            border-color: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        /* 添加按钮 */
+        .btn-add {
+            margin-top: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #eef2ff;
+            color: var(--primary);
+            border: 2px dashed #c7d2fe;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+        }
+        .btn-add:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+            border-style: solid;
+        }
+        .btn-add:active {
+            transform: scale(0.98);
+        }
+        .btn-add .plus-icon {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 768px) {
+            body {
+                padding: 16px 10px;
+            }
+            .container {
+                padding: 20px 14px;
+            }
+            .main-area {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .textarea-wrapper {
+                min-width: 100%;
+            }
+            .textarea-wrapper textarea {
+                min-height: 160px;
+            }
+            .button-group {
+                flex-direction: row;
+                flex-wrap: wrap;
+                min-width: 100%;
+                justify-content: stretch;
+                padding: 0;
+            }
+            .button-group .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+            .list-labels {
+                gap: 8px;
+            }
+            .replace-row {
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .replace-row .row-input {
+                flex: 1 1 45%;
+                min-width: 100px;
+            }
+            .replace-row .row-arrow {
+                display: none;
+            }
+            .btn-remove {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+        @media (max-width: 400px) {
+            .replace-row .row-input {
+                flex: 1 1 100%;
+            }
+            .replace-row {
+                align-items: stretch;
+            }
+            .btn-remove {
+                width: 100%;
+                border-radius: var(--radius-sm);
+                height: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔄</span> 文本替换工具
+            </h1>
+            <p>按顺序将左侧字符串替换为右侧字符串 · 实时预览</p>
+        </div>
+
+        <!-- 主区域 -->
+        <div class="main-area">
+            <!-- 输入框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 输入文本</label>
+                <textarea id="mainInput" placeholder="在此输入或粘贴要处理的文本..." spellcheck="false"></textarea>
+                <span class="char-count" id="inputCharCount">0 字符</span>
+            </div>
+
+            <!-- 输出框 -->
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 输出结果</label>
+                <textarea id="mainOutput" readonly placeholder="替换结果将实时显示在这里..." spellcheck="false"></textarea>
+                <span class="char-count" id="outputCharCount">0 字符</span>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="button-group">
+                <button class="btn btn-clear" id="clearBtn" title="清空输入和输出框，保留替换列表">
+                    🗑️ 清空
+                </button>
+                <button class="btn btn-copy" id="copyBtn" title="复制输出框内容到剪贴板">
+                    📋 复制到剪切板
+                </button>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 替换列表 -->
+        <div class="replace-section">
+            <div class="section-header">
+                <h2>
+                    ⚡ 替换规则
+                    <span class="badge" id="rowCountBadge">2 对</span>
+                </h2>
+                <span class="hint">💡 从上到下依次执行，留空"查找"则跳过该行</span>
+            </div>
+
+            <!-- 列标签 -->
+            <div class="list-labels">
+                <span>查找字符串</span>
+                <span>替换为</span>
+                <span></span>
+            </div>
+
+            <!-- 替换行容器 -->
+            <div class="replace-rows" id="replaceRows">
+                <!-- 由JS动态生成 -->
+            </div>
+
+            <!-- 添加按钮 -->
+            <button class="btn-add" id="addBtn" title="添加一行新的替换规则">
+                <span class="plus-icon">＋</span> 添加替换行
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== DOM引用 ==========
+            const mainInput = document.getElementById('mainInput');
+            const mainOutput = document.getElementById('mainOutput');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const replaceRowsContainer = document.getElementById('replaceRows');
+            const addBtn = document.getElementById('addBtn');
+            const rowCountBadge = document.getElementById('rowCountBadge');
+            const inputCharCount = document.getElementById('inputCharCount');
+            const outputCharCount = document.getElementById('outputCharCount');
+
+            // ========== 状态 ==========
+            let replaceRowCount = 0;
+            const MIN_ROWS = 1;
+            const MAX_ROWS = 50; // 安全上限
+            let copiedTimeout = null;
+
+            // ========== 默认示例数据 ==========
+            const defaultPairs = [
+                { find: 'Hello', replace: '你好' },
+                { find: 'World', replace: '世界' },
+            ];
+
+            // ========== 初始化 ==========
+            function init() {
+                // 设置默认示例文本
+                mainInput.value = 'Hello World! Welcome to the text replacement tool.';
+                // 添加默认替换行
+                defaultPairs.forEach(pair => {
+                    addReplaceRow(pair.find, pair.replace, false);
+                });
+                // 初始计算
+                updateOutput();
+                updateCharCounts();
+                updateRowCountBadge();
+                // 绑定事件
+                bindEvents();
+            }
+
+            // ========== 绑定事件 ==========
+            function bindEvents() {
+                // 大输入框实时更新
+                mainInput.addEventListener('input', function() {
+                    updateOutput();
+                    updateCharCounts();
+                });
+
+                // 清空按钮
+                clearBtn.addEventListener('click', function() {
+                    mainInput.value = '';
+                    mainOutput.value = '';
+                    updateCharCounts();
+                    // 可选：给一点视觉反馈
+                    mainInput.focus();
+                });
+
+                // 复制按钮
+                copyBtn.addEventListener('click', function() {
+                    copyToClipboard();
+                });
+
+                // 添加按钮
+                addBtn.addEventListener('click', function() {
+                    if (replaceRowCount >= MAX_ROWS) {
+                        showToast('已达到最大行数限制（' + MAX_ROWS + ' 行）');
+                        return;
+                    }
+                    addReplaceRow('', '', true);
+                    updateOutput();
+                    updateRowCountBadge();
+                });
+
+                // 事件委托：监听替换列表中的所有输入框和删除按钮
+                replaceRowsContainer.addEventListener('input', function(e) {
+                    if (e.target.classList.contains('row-input')) {
+                        updateOutput();
+                    }
+                });
+
+                replaceRowsContainer.addEventListener('click', function(e) {
+                    const removeBtn = e.target.closest('.btn-remove');
+                    if (removeBtn) {
+                        const row = removeBtn.closest('.replace-row');
+                        if (row) {
+                            removeReplaceRow(row);
+                        }
+                    }
+                });
+
+                // 键盘快捷键：Ctrl+Enter 复制输出
+                document.addEventListener('keydown', function(e) {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        copyToClipboard();
+                    }
+                });
+            }
+
+            // ========== 添加替换行 ==========
+            function addReplaceRow(findVal = '', replaceVal = '', animate = true) {
+                if (replaceRowCount >= MAX_ROWS) {
+                    showToast('已达到最大行数限制（' + MAX_ROWS + ' 行）');
+                    return null;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'replace-row';
+                row.dataset.index = replaceRowCount;
+
+                // 查找输入框
+                const findInput = document.createElement('input');
+                findInput.type = 'text';
+                findInput.className = 'row-input find-input';
+                findInput.placeholder = '查找字符串...';
+                findInput.value = findVal;
+                findInput.spellcheck = false;
+                findInput.setAttribute('aria-label', '查找字符串');
+
+                // 箭头
+                const arrow = document.createElement('span');
+                arrow.className = 'row-arrow';
+                arrow.textContent = '→';
+                arrow.setAttribute('aria-hidden', 'true');
+
+                // 替换输入框
+                const replaceInput = document.createElement('input');
+                replaceInput.type = 'text';
+                replaceInput.className = 'row-input replace-input';
+                replaceInput.placeholder = '替换为（留空 = 删除）...';
+                replaceInput.value = replaceVal;
+                replaceInput.spellcheck = false;
+                replaceInput.setAttribute('aria-label', '替换为');
+
+                // 删除按钮
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-remove';
+                removeBtn.type = 'button';
+                removeBtn.textContent = '−';
+                removeBtn.title = '删除此替换行';
+                removeBtn.setAttribute('aria-label', '删除此替换行');
+
+                row.appendChild(findInput);
+                row.appendChild(arrow);
+                row.appendChild(replaceInput);
+                row.appendChild(removeBtn);
+
+                replaceRowsContainer.appendChild(row);
+                replaceRowCount++;
+
+                // 更新删除按钮状态
+                updateRemoveButtonsState();
+
+                // 如果是动画添加，滚动到新行
+                if (animate && replaceRowCount > 0) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    // 聚焦到新的查找输入框
+                    setTimeout(() => findInput.focus(), 100);
+                }
+
+                return row;
+            }
+
+            // ========== 删除替换行 ==========
+            function removeReplaceRow(row) {
+                if (replaceRowCount <= MIN_ROWS) {
+                    showToast('至少需要保留 ' + MIN_ROWS + ' 行替换规则');
+                    updateRemoveButtonsState();
+                    return;
+                }
+                // 添加移除动画
+                row.style.transition = 'all 0.25s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    row.remove();
+                    replaceRowCount--;
+                    updateRemoveButtonsState();
+                    updateOutput();
+                    updateRowCountBadge();
+                }, 200);
+            }
+
+            // ========== 更新删除按钮状态 ==========
+            function updateRemoveButtonsState() {
+                const removeButtons = replaceRowsContainer.querySelectorAll('.btn-remove');
+                removeButtons.forEach(btn => {
+                    btn.disabled = (replaceRowCount <= MIN_ROWS);
+                    if (replaceRowCount <= MIN_ROWS) {
+                        btn.title = '至少需要保留一行';
+                    } else {
+                        btn.title = '删除此替换行';
+                    }
+                });
+            }
+
+            // ========== 更新行数徽章 ==========
+            function updateRowCountBadge() {
+                rowCountBadge.textContent = replaceRowCount + ' 对';
+            }
+
+            // ========== 更新字符计数 ==========
+            function updateCharCounts() {
+                const inputLen = mainInput.value.length;
+                const outputLen = mainOutput.value.length;
+                inputCharCount.textContent = inputLen + ' 字符';
+                outputCharCount.textContent = outputLen + ' 字符';
+            }
+
+            // ========== 核心：执行替换 ==========
+            function applyReplacements(inputText, pairs) {
+                let result = inputText;
+                for (const pair of pairs) {
+                    const searchStr = pair.find;
+                    const replaceStr = pair.replace;
+                    // 跳过空查找字符串
+                    if (searchStr === null || searchStr === undefined || searchStr === '') {
+                        continue;
+                    }
+                    // 使用 split/join 进行全局替换，避免正则特殊字符问题
+                    result = result.split(searchStr).join(replaceStr);
+                }
+                return result;
+            }
+
+            // ========== 收集所有替换对 ==========
+            function collectAllPairs() {
+                const pairs = [];
+                const rows = replaceRowsContainer.querySelectorAll('.replace-row');
+                rows.forEach(row => {
+                    const findInput = row.querySelector('.find-input');
+                    const replaceInput = row.querySelector('.replace-input');
+                    pairs.push({
+                        find: findInput ? findInput.value : '',
+                        replace: replaceInput ? replaceInput.value : '',
+                    });
+                });
+                return pairs;
+            }
+
+            // ========== 更新输出 ==========
+            function updateOutput() {
+                const inputText = mainInput.value;
+                const pairs = collectAllPairs();
+                const result = applyReplacements(inputText, pairs);
+                mainOutput.value = result;
+                updateCharCounts();
+            }
+
+            // ========== 复制到剪切板 ==========
+            function copyToClipboard() {
+                const outputText = mainOutput.value;
+                if (!outputText) {
+                    showToast('⚠️ 输出框为空，没有内容可复制');
+                    // 短暂闪烁按钮
+                    copyBtn.style.backgroundColor = '#fef3c7';
+                    copyBtn.style.color = '#92400e';
+                    copyBtn.style.borderColor = '#fcd34d';
+                    setTimeout(() => {
+                        copyBtn.style.backgroundColor = '';
+                        copyBtn.style.color = '';
+                        copyBtn.style.borderColor = '';
+                    }, 600);
+                    return;
+                }
+
+                // 现代 API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(outputText).then(() => {
+                        showCopySuccess();
+                    }).catch(() => {
+                        fallbackCopy(outputText);
+                    });
+                } else {
+                    fallbackCopy(outputText);
+                }
+            }
+
+            // ========== 备用复制方案 ==========
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '-9999px';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                try {
+                    const success = document.execCommand('copy');
+                    if (success) {
+                        showCopySuccess();
+                    } else {
+                        showToast('❌ 复制失败，请手动选择输出框内容复制');
+                    }
+                } catch (err) {
+                    showToast('❌ 复制失败，请手动选择输出框内容复制');
+                }
+                document.body.removeChild(textarea);
+            }
+
+            // ========== 复制成功反馈 ==========
+            function showCopySuccess() {
+                copyBtn.classList.add('copied');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ 已复制！';
+                if (copiedTimeout) clearTimeout(copiedTimeout);
+                copiedTimeout = setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.textContent = originalText;
+                }, 1800);
+            }
+
+            // ========== 简易Toast提示 ==========
+            function showToast(message) {
+                // 移除已有的toast
+                const existingToast = document.querySelector('.toast-message');
+                if (existingToast) existingToast.remove();
+
+                const toast = document.createElement('div');
+                toast.className = 'toast-message';
+                toast.textContent = message;
+                toast.style.cssText = `
+                        position: fixed;
+                        bottom: 30px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: #1f2937;
+                        color: #fff;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-weight: 600;
+                        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+                        z-index: 9999;
+                        animation: toastIn 0.3s ease;
+                        max-width: 90vw;
+                        text-align: center;
+                        letter-spacing: 0.3px;
+                    `;
+                // 注入动画
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                        @keyframes toastIn {
+                            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                        }
+                        @keyframes toastOut {
+                            from { opacity: 1; transform: translateX(-50%) translateY(0); }
+                            to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                        }
+                    `;
+                document.head.appendChild(styleEl);
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'toastOut 0.3s ease';
+                    setTimeout(() => {
+                        toast.remove();
+                        styleEl.remove();
+                    }, 300);
+                }, 2200);
+            }
+
+            // ========== 启动 ==========
+            init();
+
+            // ========== 额外：在大输入框中按 Tab 键插入制表符 ==========
+            mainInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    const tabChar = '\t';
+                    this.value = this.value.substring(0, start) + tabChar + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + tabChar.length;
+                    // 手动触发输入事件
+                    updateOutput();
+                    updateCharCounts();
+                }
+            });
+
+            // ========== 响应式：窗口调整时保持良好体验 ==========
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    // 这里可以做一些调整，目前不需要额外操作
+                }, 200);
+            });
+
+            // ========== 暴露一些函数到全局（方便调试） ==========
+            window.__textReplacer = {
+                addRow: addReplaceRow,
+                removeRow: removeReplaceRow,
+                updateOutput: updateOutput,
+                collectPairs: collectAllPairs,
+                applyReplacements: applyReplacements,
+            };
+
+        })();
+    </script>
+</body>
+</html>

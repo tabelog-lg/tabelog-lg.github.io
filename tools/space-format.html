@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中西文间距自动格式化</title>
+    <link rel="stylesheet" href="shared.css">
+    <script src="space.js"></script>
+</head>
+<body class="page-space">
+<div class="container">
+    <div class="header">
+        <h1><span class="icon">␣</span> 中西文间距自动格式化</h1>
+        <p>汉字 ↔ 西文/数字自动补空格 · 公式与 [[...]] 内部原样保留 · 实时预览</p>
+    </div>
+
+    <div class="main-area">
+        <div class="textarea-wrapper">
+            <label><span class="dot input-dot"></span> 输入文本</label>
+            <textarea id="mainInput" placeholder="在此输入或粘贴包含中英混排的文本..." spellcheck="false"></textarea>
+            <span class="char-count" id="inputCharCount">0 字符</span>
+        </div>
+
+        <div class="textarea-wrapper">
+            <label><span class="dot output-dot"></span> 输出结果</label>
+            <textarea id="mainOutput" readonly placeholder="处理结果将实时显示在这里..." spellcheck="false"></textarea>
+            <span class="char-count" id="outputCharCount">0 字符</span>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-convert" id="convertBtn" title="按当前设置重新处理（输入变化时会自动处理）">🚀 转换</button>
+            <button class="btn btn-clear" id="clearBtn" title="清空输入和输出框">🗑️ 清空</button>
+            <button class="btn btn-copy" id="copyBtn" title="复制输出框内容到剪贴板（Ctrl+Enter）">📋 复制到剪切板</button>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="options-section">
+        <div class="section-header">
+            <h2>⚙️ 处理设置 <span class="badge" id="formulaBadge">0 个受保护段</span></h2>
+            <span class="hint">💡 汉字与西文字符之间补 1 个空格；标点两侧不留空格</span>
+        </div>
+        <div class="legend">
+            <span class="legend-item"><span class="swatch han"></span>汉字</span>
+            <span class="legend-item"><span class="swatch west"></span>西文/数字/西文符号</span>
+            <span class="legend-item"><span class="swatch punct"></span>标点</span>
+            <span class="legend-item"><span class="swatch protect"></span>公式 / [[...]] 受保护区</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

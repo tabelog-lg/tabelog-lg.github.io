@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进度文档解码/编码器</title>
+    <style>
+
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --primary: #4a6cf7;
+    --primary-hover: #3b5de7;
+    --success: #22c55e;
+    --success-hover: #16a34a;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --text-secondary: #6b7280;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 4px 24px rgba(0, 0, 0, 0.04);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', -apple-system, sans-serif;
+    background: var(--bg-color);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    width: 100%;
+    max-width: 1280px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 28px;
+    border: 1px solid var(--border);
+}
+
+/* ========== 标题 ========== */
+.header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.header h1 .icon {
+    font-size: 30px;
+}
+.header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+/* ========== 选项行（游戏模式） ========== */
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.option-label {
+    flex: none;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+.option-row select {
+    flex: 1 1 240px;
+    min-width: 0;
+    padding: 11px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fafbfc;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition);
+}
+.option-row select:hover {
+    border-color: #c7d2fe;
+    background: #f5f7ff;
+}
+.option-row select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+.option-row .hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ========== 分隔线 ========== */
+.divider {
+    border: none;
+    border-top: 2px dashed var(--border);
+    margin: 22px 0 26px;
+}
+
+/* ========== 文件操作区 ========== */
+.file-zone {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin-bottom: 26px;
+}
+.file-upload-label {
+    flex: 1 1 260px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 24px;
+    background: #eef2ff;
+    color: var(--primary);
+    border: 2px dashed #c7d2fe;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.file-upload-label:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    border-style: solid;
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+}
+.file-upload-label:active {
+    transform: scale(0.98);
+}
+.file-upload-label input[type="file"] {
+    display: none;
+}
+
+/* ========== 按钮 ========== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 20px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    white-space: nowrap;
+    background: #f3f4f6;
+    color: var(--text);
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn:active {
+    transform: scale(0.96);
+}
+.btn:focus-visible {
+    outline: 3px solid rgba(74, 108, 247, 0.4);
+    outline-offset: 2px;
+}
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.35);
+}
+
+.btn-success {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+}
+.btn-success:hover:not(:disabled) {
+    background: var(--success-hover);
+    border-color: var(--success-hover);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.btn-secondary {
+    background: #eef2ff;
+    color: var(--primary);
+    border-color: #c7d2fe;
+}
+.btn-secondary:hover:not(:disabled) {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+}
+
+.btn-soft {
+    background: #fafbfc;
+    color: var(--text);
+    border-color: var(--border);
+}
+.btn-soft:hover:not(:disabled) {
+    background: #eef2ff;
+    color: var(--primary);
+    border-color: #c7d2fe;
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.15);
+}
+
+.btn-clear {
+    background: #fef2f2;
+    color: var(--danger);
+    border-color: #fecaca;
+}
+.btn-clear:hover:not(:disabled) {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+/* ========== 文本区域 ========== */
+.main-area {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.textarea-wrapper {
+    flex: 1 1 0;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+}
+.textarea-wrapper.full-width {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 26px;
+}
+.textarea-wrapper label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+.textarea-wrapper label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: none;
+}
+.dot.input-dot {
+    background: var(--primary);
+}
+.dot.output-dot {
+    background: var(--success);
+}
+.dot.proof-dot {
+    background: #8b5cf6;
+}
+
+.textarea-wrapper textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 240px;
+    padding: 16px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    background: #fafbfc;
+    color: var(--text);
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    tab-size: 4;
+}
+.textarea-wrapper textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+.textarea-wrapper textarea::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+.textarea-wrapper textarea[readonly] {
+    cursor: default;
+    -webkit-user-select: text;
+    user-select: text;
+}
+.textarea-wrapper textarea.output-area {
+    min-height: 200px;
+    background: #f8faf9;
+    color: #1a3c34;
+}
+.textarea-wrapper textarea.output-area:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    background: #fff;
+}
+
+/* ========== 底部按钮行 ========== */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.button-group .btn {
+    flex: 1 1 160px;
+}
+
+/* ========== 错误 / 信息提示 ========== */
+.error-message {
+    margin-top: 18px;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid var(--danger);
+    border-radius: var(--radius-sm);
+    color: #b91c1c;
+    font-size: 13.5px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: none;
+}
+.info-message {
+    margin-top: 18px;
+    padding: 12px 16px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-left: 4px solid var(--success);
+    border-radius: var(--radius-sm);
+    color: #15803d;
+    font-size: 13.5px;
+    display: none;
+}
+
+/* ========== 页脚 ========== */
+.footer {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+    body {
+        padding: 16px 10px;
+    }
+    .container {
+        padding: 20px 14px;
+    }
+    .header h1 {
+        font-size: 22px;
+    }
+    .main-area {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .textarea-wrapper {
+        min-width: 100%;
+    }
+    .textarea-wrapper textarea {
+        min-height: 170px;
+    }
+    .option-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .option-row .hint {
+        text-align: left;
+    }
+    .file-zone {
+        flex-direction: column;
+    }
+    .button-group .btn {
+        flex: 1 1 100%;
+    }
+}
+@media (max-width: 400px) {
+    .header h1 {
+        font-size: 19px;
+    }
+}
+
+/* ========== 复选框选项组 ========== */
+.option-row + .option-row {
+    margin-top: 14px;
+}
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1 1 480px;
+    min-width: 0;
+}
+.checkbox-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fafbfc;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+.checkbox-item:hover {
+    border-color: #c7d2fe;
+    background: #f5f7ff;
+}
+.checkbox-item:has(input:checked) {
+    border-color: var(--primary);
+    background: #eef2ff;
+    color: var(--primary);
+}
+.checkbox-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin: 0;
+    border: 2px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fff;
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.checkbox-item input[type="checkbox"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.checkbox-item input[type="checkbox"]:focus-visible {
+    outline: 3px solid rgba(74, 108, 247, 0.35);
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .checkbox-group {
+        flex-direction: column;
+        align-items: stretch;
+        flex: 1 1 auto;
+    }
+    .checkbox-item {
+        width: 100%;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔧</span> 进度文档解码 / 编码器
+            </h1>
+            <p>上传游戏进度文件，解码为可读文本 · 修改后重新编码并下载</p>
+        </div>
+
+        <!-- 游戏模式 -->
+        <div class="option-row">
+            <span class="option-label">游戏模式</span>
+            <select id="modeSelect">
+                <option value="survival" selected>生存模式 (survival)</option>
+                <option value="creative">创造模式 (creative)</option>
+            </select>
+            <span class="hint">💡 编码 / 解码需使用相同的模式</span>
+        </div>
+
+        <!-- ★ 新增：证明项 / 排列表 选项 -->
+        <div class="option-row">
+            <span class="option-label">证明选项</span>
+            <div class="checkbox-group" id="proofOptionGroup">
+                <label class="checkbox-item" title="编码/提取证明项时，附带用户自定义的推理规则（mc, mf, mprd）">
+                    <input type="checkbox" id="chkCustomRules" checked>
+                    <span>在证明项中加入自定义推理规则</span>
+                </label>
+                <label class="checkbox-item" title="生成排列表时，在名称后加入定理内容显示">
+                    <input type="checkbox" id="chkContentDisplay" checked>
+                    <span>在排列表中加入定理内容显示</span>
+                </label>
+                <label class="checkbox-item" title="编码/提取证明项时，显示该推理规则依赖的推理规则">
+                    <input type="checkbox" id="chkDependentRules" checked>
+                    <span>在证明项中加入依赖推理规则</span>
+                </label>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 文件操作区 -->
+        <div class="file-zone">
+            <label class="file-upload-label">
+                📂 上传进度文档文件
+                <input type="file" id="fileInput" accept=".txt,.json,.dat,text/plain,application/json">
+            </label>
+            <button id="btnDownload" class="btn btn-success" disabled>⬇️ 下载编码结果</button>
+        </div>
+
+        <!-- 主区域：编码文档 / 解码文本 -->
+        <div class="main-area">
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 编码文档（进度字符串）</label>
+                <textarea id="encodedText" placeholder="将编码进度文档粘贴到这里，或上传文件自动填充..." spellcheck="false"></textarea>
+            </div>
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 解码后的文本（可编辑）</label>
+                <textarea id="jsonText" placeholder="点击“解码”按钮生成解码文本，可修改后重新编码..." spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- 输出框 -->
+        <div class="textarea-wrapper full-width">
+            <label><span class="dot proof-dot"></span> 输出框（证明项 / 类型层证明项 / 排列表）</label>
+            <textarea id="proofText" class="output-area" placeholder="点击下方按钮生成对应内容..." readonly spellcheck="false"></textarea>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button id="btnDecode" class="btn btn-primary">🔓 解码 → 文本</button>
+            <button id="btnEncode" class="btn btn-secondary">🔒 编码 → 进度文档</button>
+            <button id="btnExtractProofs" class="btn btn-soft">📜 提取证明项</button>
+            <button id="btnExtractTypeProofs" class="btn btn-soft">🧩 提取类型层证明项</button>
+            <button id="btnShowArrangement" class="btn btn-soft">🌳 展示排列表</button>
+            <button id="btnClear" class="btn btn-clear">🧹 清空</button>
+        </div>
+
+        <!-- 错误 / 信息显示 -->
+        <div id="errorMsg" class="error-message"></div>
+        <div id="infoMsg" class="info-message"></div>
+
+        <div class="footer">
+            基于游戏内部序列化逻辑 | 不依赖游戏环境
+        </div>
+    </div>
+
+    <script>
+
+/* ========== 排列表：定理内容解析 ========== */
+// 硬编码的名称 → 定理内容字典（仅示意，内容待补全）
+const HARD_CODED_CONTENT = {
+    'mp': '$0>$1,$0⊢$1',
+    'a1': '⊢$0>($1>$0)',
+    'a2': '⊢($0>($1>$2))>(($0>$1)>($0>$2))',
+    'a3': '⊢(~$0>~$1)>($1>$0)',
+    'd<>1': '⊢($0<>$1)>~(($0>$1)>~($1>$0))',
+    'd<>2': '⊢~(($0>$1)>~($1>$0))>($0<>$1)',
+    'd&': '⊢($0&$1)<>~($0>~$1)',
+    'd|': '⊢($0|$1)<>(~$0>$1)',
+    '.i': '⊢$0>$0',
+    '.t': '$0>$1,$1>$2⊢$0>$2',
+    '.ne': '⊢~~$0>$0',
+    '.ni': '⊢$0>~~$0',
+    '.cs': '$0>($1>$2)⊢$1>($0>$2)',
+    '.a30': '⊢($0>$1)>(~$1>~$0)',
+    '.a31': '⊢(~$0>$1)>(~$1>$0)',
+    '.a32': '⊢($0>~$1)>($1>~$0)',
+    '.m': '$0,~$0⊢$1',
+    '.mn': '⊢(~$0>$0)>$0',
+    '.m1': '~$0>~$1,~$0>$1⊢$0',
+    '.m2': '$0>$1,~$0>$1⊢$1',
+    '.m&': '$0,$1⊢~($0>~$1)',
+    '.m&1': '⊢~($0>$1)>$0',
+    '.m&2': '⊢~($0>$1)>~$1',
+    '.>TF': '$0,~$1⊢~($0>$1)',
+    '.>FU': '~$0⊢$0>$1',
+    '.pierce': '⊢(($0>$1)>$0)>$0',
+    '.<>': '$0>$1,$1>$0⊢$0<>$1',
+    '.<>1': '⊢($0<>$1)>($0>$1)',
+    '.<>2': '⊢($0<>$1)>($1>$0)',
+    '.<>i': '⊢$0<>$0',
+    '.<>s': '$0<>$1⊢$1<>$0',
+    '.<>t': '$0<>$1,$1<>$2⊢$0<>$2',
+    '.<>&': '⊢($0<>$1)<>(($0>$1)&($1>$0))',
+    '.<>TT': '$0,$1⊢$0<>$1',
+    '.<>TF': '$0,~$1⊢~($0<>$1)',
+    '.<>FT': '~$0,$1⊢~($0<>$1)',
+    '.<>FF': '~$0,~$1⊢$0<>$1',
+    '.&': '$0,$1⊢$0&$1',
+    '.&1': '$0&$1⊢$0',
+    '.&2': '$0&$1⊢$1',
+    '.&n1': '~$0⊢~($0&$1)',
+    '.&n2': '~$1⊢~($0&$1)',
+    '.&s': '$0&$1⊢$1&$0',
+    '.&a': '($0&$1)&$2⊢$0&($1&$2)',
+    '.&m1': '($0&$1)>$2⊢$0>($1>$2)',
+    '.&m2': '$0>($1>$2)⊢($0&$1)>$2',
+    '.|i': '$0|$0⊢$0',
+    '.|1': '$0⊢$0|$1',
+    '.|2': '$1⊢$0|$1',
+    '.|n': '~$0,~$1⊢~($0|$1)',
+    '.|n1': '~($0|$1)⊢~$0',
+    '.|n2': '~($0|$1)⊢~$1',
+    '.|s': '$0|$1⊢$1|$0',
+    '.|a': '($0|$1)|$2⊢$0|($1|$2)',
+    '.|m': '$0>$2,$1>$2⊢($0|$1)>$2',
+    '.|m1': '$2>($0|$1)⊢($2>$0)|($2>$1)',
+    '.|m2': '($2>$0)|($2>$1)⊢$2>($0|$1)',
+    '.|mp': '$a1>$a2,$b1>$b2,$a1|$b1⊢$a2|$b2',
+    '.n|&': '~($0|$1)⊢~$0&~$1',
+    '.nn|&': '~$0|~$1⊢~($0&$1)',
+    '.n&|': '~($0&$1)⊢~$0|~$1',
+    '.nn&|': '~$0&~$1⊢~($0|$1)',
+    '.|nn&': '$0|$1⊢~(~$0&~$1)',
+    '.&nn|': '$0&$1⊢~(~$0|~$1)',
+    '.n': '⊢$0<>~~$0',
+    '.>|': '⊢($0>$1)<>(~$0|$1)',
+    '.a3<>': '⊢(~$0>~$1)<>($1>$0)',
+    '.a31<>': '⊢(~$0>$1)<>(~$1>$0)',
+    '.a32<>': '⊢($0>~$1)<>($1>~$0)',
+    '.<>r>': '$a1<>$a2,$b1<>$b2⊢($a1>$b1)<>($a2>$b2)',
+    '.<>rn': '$0<>$1⊢~$0<>~$1',
+    '.<>r<>': '$a1<>$a2,$b1<>$b2⊢($a1<>$b1)<>($a2<>$b2)',
+    '.<>r&': '$a1<>$a2,$b1<>$b2⊢($a1&$b1)<>($a2&$b2)',
+    '.<>r|': '$a1<>$a2,$b1<>$b2⊢($a1|$b1)<>($a2|$b2)',
+    '.<>rV': 'V$2:($0<>$1)⊢(V$2:$0)<>(V$2:$1)',
+    '.<>rE': 'V$2:($0<>$1)⊢(E$2:$0)<>(E$2:$1)',
+    '.<>rE!': 'V$x:($1<>$2)⊢(E!$x:$1)<>(E!$x:$2)',
+    'a5': '⊢(V$0:($1>$2))>((V$0:$1)>(V$0:$2))',
+    'a6': '⊢#nf($1,$0)>(V$0:#nf($1,$0))',
+    'a7': '⊢$0=$0',
+    'a8': '⊢($0=$1)>($2>#rp($2,$0,$1,$3))',
+    'dE': '⊢(E$0:$1)<>~(V$0:~$1)',
+    'dE!': '⊢(E!#nf($0,$2):#nf($1,$2))<>((E#nf($0,$2):#nf($1,$2))&(V#nf($0,$2):(V$2:((#nf($1,$2)&#rp(#nf($1,$2),#nf($0,$2),$2))>(#nf($0,$2)=$2)))))',
+    '.nEVn': '⊢~(E$0:$1)<>(V$0:~$1)',
+    '.nVEn': '⊢~(V$0:$1)<>(E$0:~$1)',
+    '.nVVn': '⊢(E$2:(E$0:$1))<>~(V$2:(V$0:~$1))',
+    '.nEn': '⊢(V$0:$1)<>~(E$0:~$1)',
+    '.Ve': 'V$0:$1⊢$1',
+    '.Vnf': '⊢(V$0:#nf($1,$0))<>#nf($1,$0)',
+    '.Vs': 'V$0:(V$1:$2)⊢V$1:(V$0:$2)',
+    '.Ee': 'E$0:#nf($1,$0)⊢#nf($1,$0)',
+    '.Enf': '⊢(E$0:#nf($1,$0))<>#nf($1,$0)',
+    '.Ei': '$1⊢E$0:$1',
+    '.Es': 'E$0:(E$1:$2)⊢E$1:(E$0:$2)',
+    '.EV': 'E$x:(V$y:$0)⊢V$y:(E$x:$0)',
+    '.Eirp': '⊢#nf($1,$0)>(E$0:#rp(#nf($1,$0),$2,$0))',
+    '.Erp': '⊢#rp($1,$0,$2)>(E$0:$1)',
+    '.Emp': 'V$x:($1>$2),E$x:$1⊢E$x:$2',
+    '.Vnf>': '⊢(V$0:(#nf($1,$0)>$2))<>(#nf($1,$0)>(V$0:$2))',
+    '.V>nf': '⊢(V$0:($1>#nf($2,$0)))<>((E$0:$1)>#nf($2,$0))',
+    '.V&1': 'V$0:($1&$2)⊢(V$0:$1)&(V$0:$2)',
+    '.V&2': '(V$0:$1)&(V$0:$2)⊢V$0:($1&$2)',
+    '.V&': '⊢(V$0:($1&$2))<>((V$0:$1)&(V$0:$2))',
+    '.V|nf': '⊢(V$0:($1|#nf($2,$0)))<>((V$0:$1)|#nf($2,$0))',
+    '.Vnf|': '⊢(V$0:(#nf($1,$0)|$2))<>(#nf($1,$0)|(V$0:$2))',
+    '.V&nf': '⊢(V$0:($1&#nf($2,$0)))<>((V$0:$1)&#nf($2,$0))',
+    '.Vnf&': '⊢(V$0:(#nf($1,$0)&$2))<>(#nf($1,$0)&(V$0:$2))',
+    '.E>nf': '⊢(E$0:($1>#nf($2,$0)))<>((V$0:$1)>#nf($2,$0))',
+    '.Enf>': '⊢(E$0:(#nf($1,$0)>$2))<>(#nf($1,$0)>(E$0:$2))',
+    '.E|1': 'E$0:($1|$2)⊢(E$0:$1)|(E$0:$2)',
+    '.E|2': '(E$0:$1)|(E$0:$2)⊢E$0:($1|$2)',
+    '.E|': '⊢(E$0:($1|$2))<>((E$0:$1)|(E$0:$2))',
+    '.E|nf': '⊢(E$0:($1|#nf($2,$0)))<>((E$0:$1)|#nf($2,$0))',
+    '.Enf|': '⊢(E$0:(#nf($1,$0)|$2))<>(#nf($1,$0)|(E$0:$2))',
+    '.E&nf': '⊢(E$0:($1&#nf($2,$0)))<>((E$0:$1)&#nf($2,$0))',
+    '.Enf&(': '⊢((E$0:(#nf($1,$0)&$2))<>(#nf($1,$0)&(E$0:$2))))',
+    '.Vcn': 'V$x:#nf($1,$z)⊢V$z:#rp(#nf($1,$z),$x,$z)',
+    '.Ecn': 'E$x:#nf($1,$z)⊢E$z:#rp(#nf($1,$z),$x,$z)',
+    '.E!cn': 'E!$x:#nf($1,$z)⊢E!$z:#rp(#nf($1,$z),$x,$z)',
+    '.Vcn<>': '⊢(V$x:#nf($1,$z))<>(V$z:#rp(#nf($1,$z),$x,$z))',
+    '.Ecn<>': '⊢(E$x:#nf($1,$z))<>(E$z:#rp(#nf($1,$z),$x,$z))',
+    '.E!cn<>': '⊢(E!$x:#nf($1,$z))<>(E!$z:#rp(#nf($1,$z),$x,$z))',
+    '.{|@}cn': '⊢{#nf($0,$z)|#nf($x,$z)@#nf($y,$x,$z)}={#rp(#nf($0,$z),#nf($x,$z),#nf($z,$x))|#nf($z,$x)@#nf($y,$x,$z)}',
+    '.{@|}cn': '⊢{#nf($x,$z)@#nf($y,$x,$z)|#nf($0,$z)}={#nf($z,$x)@#nf($y,$x,$z)|#rp(#nf($0,$z),#nf($x,$z),#nf($z,$x))}',
+    '.=s': '$0=$1⊢$1=$0',
+    '.=t': '$0=$1,$1=$2⊢$0=$2',
+    '.=r+': '$a1=$a2,$b1=$b2⊢($a1+$b1)=($a2+$b2)',
+    '.=r*': '$a1=$a2,$b1=$b2⊢($a1*$b1)=($a2*$b2)',
+    '.=r=': '$a1=$a2,$b1=$b2⊢($a1=$b1)<>($a2=$b2)',
+    '.=r@': '$a1=$a2,$b1=$b2⊢($a1@$b1)<>($a2@$b2)',
+    '.=r<': '$a1=$a2,$b1=$b2⊢($a1<$b1)<>($a2<$b2)',
+    '.=r()': '$a1=$a2,$b1=$b2⊢($a1,$b1)=($a2,$b2)',
+    '.E!': '⊢(E!#nf($0,$2):#nf($1,$2))<>(E#nf($2,$0):(V#nf($0,$2):(#nf($1,$2)<>(#nf($2,$0)=#nf($0,$2)))))',
+    'apn1': '⊢0@N',
+    'apn2': '⊢Vx:((x@N)>(S(x)@N))',
+    'apn3': '⊢Vx:~(S(x)=0)',
+    'apn4': '⊢Vx:(Vy:((S(x)=S(y))>(x=y)))',
+    'apn5': '⊢#rp(#nf($0,x),$1,0)>((Vx:((x@N)>(#rp(#nf($0,x),$1,x)>#rp(#nf($0,x),$1,S(x)))))>(Vx:((x@N)>#rp(#nf($0,x),$1,x))))',
+    'd1': '⊢1=S(0)',
+    'd2': '⊢2=S(1)',
+    'd3': '⊢3=S(2)',
+    'd4': '⊢4=S(3)',
+    'd5': '⊢5=S(4)',
+    'd6': '⊢6=S(5)',
+    'd7': '⊢7=S(6)',
+    'd8': '⊢8=S(7)',
+    'd9': '⊢9=S(8)',
+    'd10': '⊢10=S(9)',
+    'd+1': '⊢($x@N)>(($x+0)=$x)',
+    'd+2': '⊢($x@N)>(($y@N)>(($x+S($y))=S(($x+$y))))',
+    'd*1': '⊢($x@N)>(($x*0)=0)',
+    'd*2': '⊢($x@N)>(($y@N)>(($x*S($y))=(($x*$y)+$x)))',
+    'd<=': '⊢Vx:(Vy:((x@N)>((y@N)>((x<=y)<>(Ez:((z@N)&((x+z)=y)))))))',
+    'd>=': '⊢($x>=$y)<>($y<=$x)',
+    'd/|': '⊢Vx:(Vy:((x@N)>((y@N)>((x/|y)<>(Ez:((z@N)&((x*z)=y)))))))',
+    'dPrime': '⊢Vn:(Prime(n)<>((n@N)&~(Ex:((((x@N)&~(x=1))&~(x=n))&(Ey:((y@N)&((x*y)=n)))))))',
+    '.=Se': '⊢(S($x)=S($y))>($x=$y)',
+    '.=Si': '⊢($0=$1)>(S($0)=S($1))',
+    '.=S': '⊢($0=$1)<>(S($0)=S($1))',
+    '.pred': '⊢Vx:((x@N)>(~(x=0)>(Ez:((x=S(z))&(z@N)))))',
+    '.0+': '⊢($0@N)>((0+$0)=$0)',
+    '.S+': '⊢($0@N)>(($1@N)>((S($0)+$1)=S(($0+$1))))',
+    '.+@N': '⊢($x@N)>(($y@N)>(($x+$y)@N))',
+    '.+s': '⊢($x@N)>(($y@N)>(($x+$y)=($y+$x)))',
+    '.+a': '⊢($x@N)>(($y@N)>(($z@N)>((($x+$y)+$z)=($x+($y+$z)))))',
+    '.+e': '⊢($a@N)>(($b@N)>(($c@N)>((($a+$c)=($b+$c))>($a=$b))))',
+    '.+=0': '⊢($x@N)>(($y@N)>((($x+$y)=0)>(($x=0)&($y=0))))',
+    '.<=i': '⊢($x@N)>($x<=$x)',
+    '.<=s': '⊢($x@N)>(($y@N)>(($x<=$y)>(($y<=$x)>($x=$y))))',
+    '.<=t': '$x@N,$y@N,$z@N,$x<=$y,$y<=$z⊢$x<=$z',
+    '.<=+': '⊢($x@N)>(($y@N)>($x<=($x+$y)))',
+    '.+n<=': '⊢($x@N)>(($y@N)>~(($x+S($y))<=$x))',
+    '.<=|>=': '⊢($x@N)>(($y@N)>(($x<=$y)|($y<=$x)))',
+    '.0*': '⊢($x@N)>((0*$x)=0)',
+    '.*@N': '⊢($x@N)>(($y@N)>(($x*$y)@N))',
+    '.S*': '⊢($x@N)>(($y@N)>((S($x)*$y)=(($x*$y)+$y)))',
+    '.*s': '⊢($x@N)>(($y@N)>(($x*$y)=($y*$x)))',
+    '.*+d': '⊢($x@N)>(($y@N)>(($z@N)>(($x*($y+$z))=(($x*$y)+($x*$z)))))',
+    '.+*d': '⊢($x@N)>(($y@N)>(($z@N)>((($x+$y)*$z)=(($x*$z)+($y*$z)))))',
+    '.*a': '⊢($x@N)>(($y@N)>(($z@N)>((($x*$y)*$z)=($x*($y*$z)))))',
+    '.*=0': '⊢($x@N)>(($y@N)>((($x*S($y))=0)>($x=0)))',
+    '.*n=0': '⊢($x@N)>(($y@N)>(~($x=0)>(~($y=0)>~(($x*$y)=0))))',
+    '.*e': '⊢($x@N)>(($y@N)>(($z@N)>((($x*S($z))=($y*S($z)))>($x=$y))))',
+    'aExt': '⊢Vx:(Vy:((Vz:~(((z@x)>(z@y))>~((z@y)>(z@x))))>(x=y)))',
+    'aSep': '⊢V#nf($x,$y,$z):~(V#nf($y,$x,$z):~(V#nf($z,$x,$y):~(((#nf($z,$x,$y)@#nf($y,$x,$z))>~((#nf($z,$x,$y)@#nf($x,$y,$z))>~#nf($0,$y)))>~(~((#nf($z,$x,$y)@#nf($x,$y,$z))>~#nf($0,$y))>(#nf($z,$x,$y)@#nf($y,$x,$z))))))',
+    'aPair': '⊢Vx:(Vy:~(Vz:((x@z)>~(y@z))))',
+    'aUnion': '⊢Vx:~(Va:~(Vy:(Vz:((z@y)>((y@x)>(z@a))))))',
+    'aPow': '⊢Vx:~(Vy:~(Vz:((Va:((a@z)>(a@x)))>(z@y))))',
+    'aRepl': '⊢(V#nf($x,$y,$z):~(V#nf($y,$x,$z):~(V#nf($z,$x,$y):(#nf($0,$y)>(#nf($z,$x,$y)=#nf($y,$x,$z))))))>(V#nf($y,$x,$z):~(V#nf($x,$y,$z):~(V#nf($z,$x,$y):~(((#nf($z,$x,$y)@#nf($x,$y,$z))>~(V#nf($x,$y,$z):((#nf($x,$y,$z)@#nf($y,$x,$z))>~#nf($0,$y))))>~(~(V#nf($x,$y,$z):((#nf($x,$y,$z)@#nf($y,$x,$z))>~#nf($0,$y)))>(#nf($z,$x,$y)@#nf($x,$y,$z)))))))',
+    'aInf': '⊢~(Vx:((Vy:((Vz:~(z@y))>(y@x)))>~(Vy:((y@x)>(Vz:((Va:~(((a@z)>(~(a@y)>(a=y)))>~((~(a@y)>(a=y))>(a@z))))>(z@x)))))))',
+    'aReg': '⊢Vx:(~(Va:~(a@x))>~(Vy:((y@x)>~(Vz:((z@y)>~(z@x))))))',
+    'aChoice': '⊢Vx:~(Vy:~(Vz:(Vw:(~((z@w)>~(w@x))>~(Vv:~(Vu:~((~(Vt:(~((u@w)>~(w@t))>((u@t)>~(t@y))))>(u=v))>~((u=v)>~(Vt:(~((u@w)>~(w@t))>((u@t)>~(t@y))))))))))))',
+    'd{}': '⊢Vx:~(x@{})',
+    'd{.}': '⊢($1@{$2})<>($1=$2)',
+    'd{..}': '⊢($1@{$2,$3})<>(($1=$2)|($1=$3))',
+    'd()': '⊢($1,$2)={{$1},{$1,$2}}',
+    'd()pr': '⊢(E$x:(E$y:($0=($x,$y))))>($0=(Pr1($0),Pr2($0)))',
+    'd<': '⊢(#nf($a,$0)<#nf($b,$0))<>(V$0:(($0@#nf($a,$0))>($0@#nf($b,$0))))',
+    'dUnion': '⊢(#nf($z,$0)@Union(#nf($x,$0)))<>(E$0:(($0@#nf($x,$0))&(#nf($z,$0)@$0)))',
+    'dU': '⊢($z@($xU$y))<>(($z@$x)|($z@$y))',
+    'dI': '⊢($z@($xI$y))<>(($z@$x)&($z@$y))',
+    'dPow': '⊢($z@Pow($x))<>($z<$x)',
+    'd{@|}': '⊢($x@{$x@#nf($y,$x)|$z})<>(($x@#nf($y,$x))&$z)',
+    'd{|@}': '⊢(#nf($w,$x)@{$z|$x@#nf($y,$x)})<>(E$x:(($x@#nf($y,$x))&($z=#nf($w,$x))))',
+    'd\\': '⊢(#nf($a,$c)\\#nf($b,$c))={$c@#nf($a,$c)|~($c@#nf($b,$c))}',
+    'dX': '⊢(#nf($a,$m,$n)X#nf($b,$m,$n))=Union({{(#nf($m,$n),#nf($n,$m))|#nf($n,$m)@#nf($b,$m,$n)}|#nf($m,$n)@#nf($a,$m,$n)})',
+    'domega': '⊢Vn:((n@omega)<>(Vx:((({}@x)&(Vy:((y@x)>((yU{y})@x))))>(n@x))))',
+    'dRel': '⊢Va:(Vb:(Vr:(Rel(a,r,b)<>(Ef:((f@r)&(f=(a,b)))))))',
+    'dEquiv': '⊢Va:(Vb:(Equiv(a,b)<>(Er:((Vx:((x@a)>(E!y:((y@b)&Rel(x,r,y)))))&(Vy:((y@b)>(E!x:((x@a)&Rel(x,r,y)))))))))',
+    'dOrder': '⊢Vx:(Vr:(Order(x,r)<>((Va:(Vb:(((a@x)&(b@x))>((Rel(a,r,b)|Rel(b,r,a))&((Rel(a,r,b)&Rel(b,r,a))<>(a=b))))))&(Va:(Vb:(Vc:((((a@x)&(b@x))&(c@x))>((Rel(a,r,b)&Rel(b,r,c))>Rel(a,r,c)))))))))',
+    'dWOrder': '⊢Vx:(Vr:(WellOrder(x,r)<>(Order(x,r)&(Vs:(((s<x)&~(s={}))>(Em:((m@s)&(Vn:((n@s)>Rel(m,r,n))))))))))',
+    '.aext': '⊢Vx:(Vy:((Vz:((z@x)<>(z@y)))>(x=y)))',
+    '.asep': '⊢V#nf($x,$y,$z):(E#nf($y,$x,$z):(V#nf($z,$x,$y):((#nf($z,$x,$y)@#nf($y,$x,$z))<>((#nf($z,$x,$y)@#nf($x,$y,$z))&#nf($0,$y)))))',
+    '.apair': '⊢Vx:(Vy:(Ez:((x@z)&(y@z))))',
+    '.aunion': '⊢Vx:(Ea:(Vy:(Vz:((z@y)>((y@x)>(z@a))))))',
+    '.apow': '⊢Vx:(Ey:(Vz:((z<x)>(z@y))))',
+    '.arepl': '⊢(V#nf($x,$y,$z):(E#nf($y,$x,$z):(V#nf($z,$x,$y):(#nf($0,$y)>(#nf($z,$x,$y)=#nf($y,$x,$z))))))>(V#nf($y,$x,$z):(E#nf($x,$y,$z):(V#nf($z,$x,$y):((#nf($z,$x,$y)@#nf($x,$y,$z))<>(E#nf($x,$y,$z):((#nf($x,$y,$z)@#nf($y,$x,$z))&#nf($0,$y)))))))',
+    '.ainf': '⊢Ex:(({}@x)&(Vy:((y@x)>((yU{y})@x))))',
+    '.areg': '⊢Vx:(~(x={})>(Ey:((y@x)&((yIx)={}))))',
+    '.achoice': '⊢Vx:(Ey:(Vz:(Vw:(((z@w)&(w@x))>(Ev:(Vu:((Et:(((u@w)&(w@t))&((u@t)&(t@y))))<>(u=v))))))))',
+    '.<i': '⊢$0<$0',
+    '.<t': '$0<$1,$1<$2⊢$0<$2',
+    '.ext': '⊢(V$z:(($z@#nf($x,$z))<>($z@#nf($y,$z))))>(#nf($x,$z)=#nf($y,$z))',
+    '.=<': '⊢(($x<$y)&($y<$x))>($x=$y)',
+    '.={}': '⊢Vx:((Vy:~(y@x))>(x={}))',
+    '.=n{}': '$a@$b⊢~($b={})',
+    '.filter': 'E#nf($x,$z):(V#nf($z,$x):(#nf($0,$x)>(#nf($z,$x)@#nf($x,$z))))⊢E!#nf($x,$z):(V#nf($z,$x):((#nf($z,$x)@#nf($x,$z))<>#nf($0,$x)))',
+    '.{.}=e': '⊢({$1}={$2})<>($1=$2)',
+    '.{..}s': '⊢{$0,$1}={$1,$0}',
+    '.{..}1': '⊢$0@{$0,$1}',
+    '.{..}2': '⊢$1@{$0,$1}',
+    '.{.=..}': '{$a}={$b,$c}⊢($a=$b)&($a=$c)',
+    '.{..}i': '⊢{$0}={$0,$0}',
+    '.{..}t': '{$a,$b}={$b,$c}⊢$a=$c',
+    '.()1': '($a1,$b1)=($a2,$b2)⊢$a1=$a2',
+    '.()2': '($a1,$b1)=($a2,$b2)⊢$b1=$b2',
+    '.()=': '⊢(($a1,$b1)=($a2,$b2))<>(($a1=$a2)&($b1=$b2))',
+    '.Xe': '($x,$y)@($aX$b)⊢($x@$a)&($y@$b)',
+    '.Xi': '$x@$a,$y@$b⊢($x,$y)@($aX$b)',
+    '.Pr1': '⊢$x=Pr1(($x,$y))',
+    '.Pr2': '⊢$y=Pr2(($x,$y))',
+    '.X': '⊢($x@($aX$b))<>(($x=(Pr1($x),Pr2($x)))&((Pr1($x)@$a)&(Pr2($x)@$b)))',
+    '.pn1': '⊢{}@omega',
+    '.pn2': '⊢Vn:((n@omega)>((nU{n})@omega))',
+    '.pn3': '⊢Vx:~((xU{x})={})',
+    '.pn4': '⊢Vx:(Vy:(((xU{x})=(yU{y}))>(x=y)))',
+    '.pn5': '⊢#rp(#nf($0,x),$1,{})>((Vx:((x@omega)>(#rp(#nf($0,x),$1,x)>#rp(#nf($0,x),$1,(xU{x})))))>(Vx:((x@omega)>#rp(#nf($0,x),$1,x))))',
+    'd0': '⊢0={}',
+    'dS': '⊢S($x)=($xU{$x})',
+    'dN': '⊢N=omega',
+    '.N@+': '⊢($x@N)>(($y@N)>($x@($x+S($y))))',
+    '.N@t': '⊢($x@N)>(($y@$x)>($y@N))',
+    '.N@<=': '⊢($x@N)>(($y@$x)>($y<=$x))',
+    '.<=Rel': '⊢((($x@N)&($y@N))&($x<=$y))<>Rel($x,{x@(NXN)|(Pr1(x)<=Pr2(x))},$y)',
+    '.<=Order': '⊢Order(N,{x@(NXN)|(Pr1(x)<=Pr2(x))})',
+    'dfZ': '⊢Vx:((x@(NXN))>(Z(x)={y@(NXN)|((Pr1(x)+Pr2(y))=(Pr2(x)+Pr1(y)))}))',
+    'dZ': '⊢Z={Z(x)|x@(NXN)}',
+    'dZ+': '⊢($x@(NXN))>(($y@(NXN))>((Z($x)+Z($y))=Z(((Pr1($x)+Pr1($y)),(Pr2($x)+Pr2($y))))))',
+    'dZ-': '⊢($x@(NXN))>(($y@(NXN))>((Z($x)-Z($y))=Z(((Pr1($x)+Pr2($y)),(Pr2($x)+Pr1($y))))))',
+    'dZ*': '⊢($x@(NXN))>(($y@(NXN))>((Z($x)*Z($y))=Z((((Pr1($x)*Pr1($y))+(Pr2($x)*Pr2($y))),((Pr1($x)*Pr2($y))+(Pr2($x)*Pr1($y)))))))',
+    'dZ<=': '⊢($x@(NXN))>(($y@(NXN))>((Z($x)<=Z($y))<>((Pr1($x)+Pr2($y))<=(Pr2($x)+Pr1($y)))))',
+    'dZ-2': '⊢-2=Z((0,2))',
+    'dZ-1': '⊢-1=Z((0,1))',
+    'dZ0': '⊢+0=Z((0,0))',
+    'dZ1': '⊢+1=Z((1,0))',
+    'dZ2': '⊢+2=Z((2,0))',
+    '.@Z': '$x@N,$y@N⊢Z(($x,$y))@Z',
+    '.Zr': '$x@N,$y@N,$z@N⊢Z(($x,$y))=Z((($x+$z),($y+$z)))',
+    '.Z+s': '⊢($x@Z)>(($y@Z)>(($x+$y)=($y+$x)))',
+    'dQ-2': '⊢-2q=Q((-2,+1))',
+    'dQ-1': '⊢-1q=Q((-1,+1))',
+    'dQ0': '⊢0q=Q((+0,+1))',
+    'dQ1': '⊢1q=Q((+1,+1))',
+    'dQ2': '⊢2q=Q((+2,+1))',
+    'd0.5': '⊢0.5=Q((+5,+10))',
+    'd-3.14': '⊢-3.14=Q((-314,+100))',
+    'd5.': '⊢5.=Q((+5,+1))',
+    'dfQ': '⊢Vx:((x@(ZX(Z\\{+0})))>(Q(x)={y@(ZX(Z\\{+0}))|((Pr1(x)*Pr2(y))=(Pr2(x)*Pr1(y)))}))',
+    'dQ': '⊢Q={Q(x)|x@(ZX(Z\\{+0}))}',
+    'dQ+': '⊢($x@(ZX(Z\\{+0})))>(($y@(ZX(Z\\{+0})))>((Q($x)+Q($y))=Q((((Pr1($x)*Pr2($y))+(Pr1($y)*Pr2($x))),(Pr2($x)*Pr2($y))))))',
+    'dQ-': '⊢($x@(ZX(Z\\{+0})))>(($y@(ZX(Z\\{+0})))>((Q($x)+Q($y))=Q((((Pr1($x)*Pr2($y))-(Pr1($y)*Pr2($x))),(Pr2($x)*Pr2($y))))))',
+    'dQ*': '⊢($x@(ZX(Z\\{+0})))>(($y@(ZX(Z\\{+0})))>((Q($x)*Q($y))=Q(((Pr1($x)*Pr1($y)),(Pr2($x)*Pr2($y))))))',
+    'dQ/': '⊢($x@(ZX(Z\\{+0})))>(($y@((Z\\{+0})X(Z\\{+0})))>((Q($x)/Q($y))=Q(((Pr1($x)*Pr2($y)),(Pr2($x)*Pr1($y))))))',
+    'dQ<=': '⊢($x@(ZX(Z\\{+0})))>(($y@(ZX(Z\\{+0})))>(((Pr2($x)*Pr2($y))>=0)>((Q($x)<=Q($y))<>((Pr1($x)*Pr2($y))<=(Pr2($x)*Pr1($y))))))',
+    'dR-2': '⊢-2r={x@Q|((x<=-2)&~(x=-2))}',
+    'dR-1': '⊢-1r={x@Q|((x<=-1)&~(x=-1))}',
+    'dR0': '⊢0r={x@Q|((x<=0)&~(x=0))}',
+    'dR1': '⊢1r={x@Q|((x<=1)&~(x=1))}',
+    'dR2': '⊢2r={x@Q|((x<=2)&~(x=2))}',
+    'dR0.5': '⊢0.5r={x@Q|((x<=0.5)&~(x=0.5))}',
+    'd-3.14r': '⊢-3.14r={x@Q|((x<=-3.14)&~(x=-3.14))}',
+    'ddkCut': '⊢Va:(DdkCut(a)<>((((~(a={})&~(a=Q))&(((Q\\a)Ua)=Q))&(Vx:(Vy:((x@a)>((y@(Q\\a))>((x<=y)&~(x=y)))))))&~(Ex:((x@a)&(Vy:((y@a)>(x>=y)))))))',
+    'dR': '⊢R={a@Pow(Q)|DdkCut(a)}',
+    'dR+': '⊢Vx:(Vy:((x@R)>((y@R)>((x+y)={z@Q|(Em:(En:(((m@x)&(n@y))&(z=(m+n)))))}))))',
+    'dR-': '⊢Vx:(Vy:((x@R)>((y@R)>((x-y)={z@Q|(Em:(En:(((m@x)&(n@(Q\\y)))&(z=(m-n)))))}))))',
+    'dR*1': '⊢Vx:(Vy:((x@R)>((y@R)>((Vm:((m@(Q\\x))>(m>=0q)))>((Vm:((m@(Q\\y))>(m>=0q)))>((x*y)={z@Q|~(Em:(En:(((m@(Q\\x))&(n@(Q\\y)))&(z=(m*n)))))}))))))',
+    'dR*2': '⊢Vx:(Vy:((x@R)>((y@R)>(((x*y)=(0r-((0r-x)*y)))&((x*y)=(0r-(x*(0r-y))))))))',
+    'dR/1': '⊢Vx:(Vy:((x@R)>((y@R)>((0q@x)>((y/x)=(y*{z@Q|((z>=0)&(Em:((m@x)&(z=(1q/m)))))}))))))',
+    'dR/2': '⊢Vx:(Vy:((x@R)>((y@R)>((x/(0r-y))=(0r-(x/y))))))',
+    'dR<=': '⊢($x@R)>(($y@R)>(($x<=$y)<>($x<$y)))'
+};
+
+// ==================== 基础映射表（与游戏一致） ====================
+
+const splittor = "-(=)-";
+const dict = {
+    ',"aE0","aPair","aPow","aUnion","areg","arepl","asep","ainf",': "a#`",
+    '"0","1","2","3","4","5","6","7","8","9","10"': "b#`",
+    '"Union","Pow","S"': "c#`",
+    ',"apn1","apn2","apn3","d1","d2","d3","d4","d5","d6","d7","d8","d9",': "d#`",
+    '","2,2,4,2,': '@`',
+    '3,3,3,3,': '3`',
+    '2,2,2,2,2,2,': '6`',
+    '1,1,1,1,1,1,': '1`',
+    '2,2,2,1,2,': '5`',
+    '素食主义者（累计获40µg推理素）': '4#`',
+    '你推出你，他推出他（⊢$0>$0）': '2#`',
+    '我推出你，你推出我（<>）': '=#`',
+    '我给且只给所有不自己理发的人理发': 'Q#`',
+    '会跑的“⊢”（演绎元定理）': '3#`',
+    '第一次消费': '1#`',
+    '[["progL","[ach]解锁了成就",': 'h`',
+    '","[ach]': '2`',
+    '","录制*",[["': '*`',
+    ',["mp",[': 'm`',
+    '],[]]]],"': '[`',
+    '",[],["': '{`',
+    '","a': 'a`',
+    '","d': 'd`',
+    '],[]],["': ']`',
+    '",[-1],[': '-`',
+    '","元规则生成*",[["': 'M`',
+    '5`3,1,2,3,2,': ',`',
+    '"]],["': '.`',
+    ')<>(': '=`',
+    '.<>': 'q`',
+    '",[-1]`': 'z`',
+};
+
+const replaceArr1 = Object.entries(dict);           // 编码正向
+const replaceArr2 = replaceArr1.slice(0).reverse(); // 解码反向
+
+// ==================== 随机数生成器 ====================
+
+class Rnd {
+    constructor(x) { this.x = x >>> 0; }
+    next() {
+        this.x = ((this.x + 0x19da44d9) + (this.x << 8)) >>> 0;
+        this.x = (this.x ^ (this.x >>> 4)) >>> 0;
+        this.x = ((this.x * 0xb5502e5) + (this.x >>> 0)) >>> 0;
+        return (this.x >>> 0) / 0x100000000;
+    }
+}
+
+// ==================== 洗牌与中文处理 ====================
+
+class Shuffle {
+    static shuffleArray(array, randomFunction) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(randomFunction.next() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+    static shuffleArrayReverse(array, randomFunction) {
+        const nums = new Array(array.length).fill(0).map((_, i) => i);
+        Shuffle.shuffleArray(nums, randomFunction);
+        const res = new Array(array.length);
+        for (const [i, j] of nums.entries()) {
+            res[j] = array[i];
+        }
+        return res.join("");
+    }
+    static replaceZh(a) {
+        let r = "";
+        for (let i = 0; i < a.length; i++) {
+            if (a.charCodeAt(i) > 0xFF) {
+                r += "U`" + a.charCodeAt(i).toString(36) + ".";
+            } else {
+                r += a[i];
+            }
+        }
+        return r;
+    }
+    static recoverZh(a) {
+        let r = a[0];
+        let code = "?";
+        for (let i = 1; i < a.length; i++) {
+            if (code !== "?") {
+                if (a[i] !== ".") {
+                    code += a[i];
+                } else {
+                    r = r.slice(0, -1);
+                    r += String.fromCharCode(Number.parseInt(code, 36));
+                    code = "?";
+                }
+            } else if (a[i] === "`" && a[i - 1] === "U") {
+                code = "";
+            } else {
+                r += a[i];
+            }
+        }
+        return r;
+    }
+}
+
+// ==================== 核心编码/解码函数 ====================
+
+function encodeProgressDoc(jsonStr, mode = 'survival') {
+    let processed = jsonStr;
+    for (const [a, b] of replaceArr1) {
+        processed = processed.replaceAll(a, b);
+    }
+    processed = Shuffle.replaceZh(processed);
+    const seed = (mode === 'survival') ? processed.length : (processed.length - 1);
+    const rnd = new Rnd(seed);
+    const shuffled = Shuffle.shuffleArray(Array.from(processed), rnd);
+    return shuffled.join("");
+}
+
+function decodeProgressDoc(encodedStr, mode = 'survival') {
+    const seed = (mode === 'survival') ? encodedStr.length : (encodedStr.length - 1);
+    const rnd = new Rnd(seed);
+    const unshuffled = Shuffle.shuffleArrayReverse(Array.from(encodedStr), rnd);
+    const recoveredZh = Shuffle.recoverZh(unshuffled);
+    let result = recoveredZh;
+    for (const [a, b] of replaceArr2) {
+        result = result.replaceAll(b, a);
+    }
+    return result;
+}
+
+// ==================== DOM 交互逻辑 ====================
+
+const encodedTextarea = document.getElementById('encodedText');
+const jsonTextarea = document.getElementById('jsonText');
+const proofTextarea = document.getElementById('proofText');
+const modeSelect = document.getElementById('modeSelect');
+const fileInput = document.getElementById('fileInput');
+const btnDecode = document.getElementById('btnDecode');
+const btnEncode = document.getElementById('btnEncode');
+const btnExtractProofs = document.getElementById('btnExtractProofs');
+const btnExtractTypeProofs = document.getElementById('btnExtractTypeProofs');
+const btnShowArrangement = document.getElementById('btnShowArrangement');
+const btnClear = document.getElementById('btnClear');
+const btnDownload = document.getElementById('btnDownload');
+const errorMsg = document.getElementById('errorMsg');
+const infoMsg = document.getElementById('infoMsg');
+
+// 显示错误
+function showError(message) {
+    errorMsg.textContent = message;
+    errorMsg.style.display = 'block';
+    infoMsg.style.display = 'none';
+}
+
+// 显示信息
+function showInfo(message) {
+    infoMsg.textContent = message;
+    infoMsg.style.display = 'block';
+    errorMsg.style.display = 'none';
+}
+
+// 清除消息
+function clearMessages() {
+    errorMsg.style.display = 'none';
+    infoMsg.style.display = 'none';
+}
+
+/* ========== 证明 / 排列表 选项 ========== */
+
+const ProofOptionIds = {
+    customRules:    'chkCustomRules',
+    contentDisplay: 'chkContentDisplay',
+    dependentRules: 'chkDependentRules'
+};
+
+const proofOptions = {
+    customRules:    false,
+    contentDisplay: false,
+    dependentRules: false
+};
+
+function initProofOptions() {
+    for (const [key, id] of Object.entries(ProofOptionIds)) {
+        const el = document.getElementById(id);
+        if (!el) continue;                 // 复选框缺失 → 保持默认 false，不抛异常
+        proofOptions[key] = !!el.checked;
+        el.addEventListener('change', () => {
+            proofOptions[key] = !!el.checked;
+            onProofOptionChange(key, !!el.checked);
+        });
+    }
+}
+
+function getProofOptions() {
+    return { ...proofOptions };
+}
+
+function isProofOptionEnabled(key) {
+    return !!proofOptions[key];
+}
+
+function onProofOptionChange(key, checked) {
+    // 清空上一次的证明项结果，避免残留与当前选项不一致的内容
+    const proofText = document.getElementById('proofText');
+    if (proofText) proofText.value = '';
+    if (typeof clearMessages === 'function') clearMessages();
+}
+
+// ==================== 解码结果分段 ====================
+
+/*
+    解码后的整体结构：
+    [第一部分]-(=)-[第二部分]-(=)-[第三部分]-(=)-[第四部分]
+
+    第一部分：[[成就与门],推理素数量,已使用推理素数量,拆门数,步数,[最大已达到序数的PrSS表示],序数进位基底,(未知，可选项)]
+    第二部分：2,2,2,1,...:0.5898,...:1
+    第三部分：[[常量定义表],[函数定义表],[谓词定义表],[[],元规则表],{推理规则表},[排列表],[]]
+    第四部分：[类型层证明项表]
+*/
+
+/*
+Fix 7: 修正第三部分的解析规则
+Fix 8: 修正排列表的文件夹解析分隔符，': : ' 改为 '::'
+Fix 9: 修正排列表的文件夹标识，'<f>' 改为 '< f >'
+*/
+
+function splitDecodedParts(decoded) {
+    const parts = decoded.split(splittor);
+    if (parts.length < 4) {
+        throw new Error(
+            `解码结果格式错误：期望以 "${splittor}" 分隔成 4 个部分，实际得到 ${parts.length} 个`
+        );
+    }
+    return parts;
+}
+
+// 解析第三部分（修正：7 个元素，索引左移）
+function parseSection3(str) {
+    let obj;
+    try {
+        obj = JSON.parse(str);
+    } catch (e) {
+        throw new Error('第三部分不是合法 JSON：' + e.message);
+    }
+    if (!Array.isArray(obj)) throw new Error('第三部分不是数组');
+
+    // 结构：[[常量],[函数],[谓词],[[],元规则],{推理规则},[排列表],[]]
+    //  索引：   0     1     2        3          4          5      6
+    return {
+        constTable:  obj[0] || [],   // 常量定义表
+        funcTable:   obj[1] || [],   // 函数定义表
+        predTable:   obj[2] || [],   // 谓词定义表
+        metaRules:   obj[3] || [],   // [[], 元规则表]
+        rules:       obj[4] || {},   // 推理规则表   ← 原为 obj[5]
+        arrangement: obj[5] || [],   // 排列表       ← 原为 obj[6]
+        extra:       obj[6] || []    // 末尾空表
+    };
+}
+
+// 读取解码文本并取出第三部分
+function getSection3() {
+    const decoded = jsonTextarea.value.trim();
+    if (!decoded) throw new Error('请先解码或粘贴解码后的文本到文本框');
+    const parts = splitDecodedParts(decoded);
+    return parseSection3(parts[2].trim());
+}
+
+// 读取解码文本并取出第四部分原始字符串
+function getSection4Raw() {
+    const decoded = jsonTextarea.value.trim();
+    if (!decoded) throw new Error('请先解码或粘贴解码后的文本到文本框');
+    const parts = splitDecodedParts(decoded);
+    return parts[3].trim();
+}
+
+// ==================== 证明项提取功能 ====================
+
+/*
+Fix 1: 去除硬编码 si
+Fix 2: 跳过 tag 为“元规则生成*”的定理
+Fix 3: 对定理证明项不限制为 3 项，修复使用临时变量的定理证明
+Fix 4: 对有序对出现在 hyp 中的情况特判，修复 d() 的逗号切分
+Fix 5: 同 Fix 4，修复 d{..} 的逗号切分
+Fix 6: 去掉 tag 部分的输出
+Fix 10: 加入谓词、函数、常量定义的元规则生成
+*/
+
+// 判断一个值是否是单个定理定义：[sequent, tag, steps, ...]
+// 只要求前 3 项有效，后面的项忽略
+function isTheoremDef(v) {
+    return Array.isArray(v) && v.length >= 3
+        && typeof v[0] === 'string'      // sequent
+        && typeof v[1] === 'string'      // tag
+        && Array.isArray(v[2]);          // steps
+}
+
+/*
+
+// 判断一个对象是否是定理映射：所有/部分值是定理定义
+function isTheoremMap(obj) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+    const keys = Object.keys(obj);
+    if (keys.length === 0) return false;
+    return keys.some(k => isTheoremDef(obj[k]));
+}
+
+// 在字符串中扫描所有独立的 JSON 对象（花括号配对，能跳过字符串内的括号）
+function findAllJsonObjects(s) {
+    const results = [];
+    let i = 0;
+    while (i < s.length) {
+        if (s[i] === '{') {
+            let depth = 0;
+            let inString = false;
+            let escape = false;
+            let j = i;
+            for (; j < s.length; j++) {
+                const c = s[j];
+                if (inString) {
+                    if (escape) escape = false;
+                    else if (c === '\\') escape = true;
+                    else if (c === '"') inString = false;
+                } else {
+                    if (c === '"') inString = true;
+                    else if (c === '{') depth++;
+                    else if (c === '}') {
+                        depth--;
+                        if (depth === 0) break;
+                    }
+                }
+            }
+            if (depth === 0 && j < s.length) {
+                results.push(s.slice(i, j + 1));
+                i = j + 1;
+                continue;
+            }
+        }
+        i++;
+    }
+    return results;
+}
+
+*/
+
+// 只按顶层逗号切分：圆括号 () 和花括号 {} 内的逗号不分割
+// 例如 "($a1,$b1)=($a2,$b2),{$0,$1}={$0,$2},$c"
+//   会得到 ["($a1,$b1)=($a2,$b2)", "{$0,$1}={$0,$2}", "$c"]
+function splitTopLevelCommas(s) {
+    const parts = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (c === '(' || c === '{') depth++;
+        else if (c === ')' || c === '}') depth--;
+        else if (c === ',' && depth === 0) {
+            parts.push(s.slice(start, i));
+            start = i + 1;
+        }
+    }
+    parts.push(s.slice(start));
+    return parts;
+}
+
+/* ============================================================
+   ★ 新增：规则顺序表缓存
+   ------------------------------------------------------------
+   数据来源：第三部分的排列表（sec3.arrangement）
+   规则：剔除所有以 "< f >" 开头的文件夹项，剩下的按原顺序组成数组
+        （注意 "< f >" 含空格，与 parseFolderItem / buildArrangementTree
+          中的判定保持一致，共 5 个字符）
+   构建时机：第一次被 getOrder() 调用时构建，之后直接复用
+   失效时机：见下方 decodeAction / btnClear / jsonTextarea input
+   ============================================================ */
+const RuleOrderStore = (() => {
+    let order = null;   // string[] | null   规则名顺序表
+
+    function build() {
+        // 1. 取出排列表（getSection3 会解析解码文本的第三部分）
+        const sec3  = getSection3();
+        const items = Array.isArray(sec3.arrangement) ? sec3.arrangement : [];
+
+        // 2. 过滤掉所有文件夹项，保留规则名，维持原顺序
+        const list = [];
+        for (const item of items) {
+            if (typeof item !== 'string') continue;    // 非字符串项直接跳过
+            if (item.startsWith('< f >')) continue;    // "< f >" 开头 = 文件夹，跳过
+            list.push(item);
+        }
+
+        order = list;
+    }
+
+    return {
+        // 取规则顺序表（首次调用时构建）
+        getOrder() {
+            if (order === null) build();
+            return order;
+        },
+        // 令缓存失效（解码文本变化后调用）
+        invalidate() {
+            order = null;
+        }
+    };
+})();
+
+/* ============================================================
+   ★ 改写：通过 steps 分析该定理依赖的推理规则
+   规则顺序表由 RuleOrderStore 统一提供，不在本函数内重复解析
+   ============================================================ */
+// ===== 如果已有解析实现，可删除这段 =====
+const extractAtoms = (() => {
+    const UNARY_OPS = new Set(['<', '>', 'c', 'v', 'u', 'e']);
+    const DELIMITERS = new Set([':', ',']);
+
+    function parse(expr) {
+        const n = expr.length;
+
+        function _parse(i) {
+            if (i >= n) throw new Error('表达式意外结束');
+            const ch = expr[i];
+
+            if (UNARY_OPS.has(ch)) {
+                const [child, end] = _parse(i + 1);
+                return [{ op: ch, children: [child], start: i, end }, end];
+            }
+
+            if (ch === ':') {
+                const start = i;
+                i += 1;
+                const children = [];
+
+                while (true) {
+                    if (i >= n) throw new Error('冒号后缺少操作数');
+
+                    const [child, next] = _parse(i);
+                    children.push(child);
+                    i = next;
+
+                    if (i >= n) throw new Error('冒号表达式缺少逗号');
+
+                    if (expr[i] === ':') {
+                        i += 1;
+                        continue;
+                    }
+
+                    if (expr[i] === ',') {
+                        i += 1;
+                        if (i >= n) throw new Error('逗号后缺少操作数');
+
+                        const [last, end] = _parse(i);
+                        children.push(last);
+                        return [{ op: ':', children, start, end }, end];
+                    }
+
+                    throw new Error("冒号后需要 ':' 或 ','");
+                }
+            }
+
+            if (ch === ',') throw new Error('意外的逗号');
+
+            let j = i;
+            while (j < n && !DELIMITERS.has(expr[j])) j += 1;
+            if (j === i) throw new Error(`无法识别的字符: ${ch}`);
+
+            return [{ op: expr.slice(i, j), children: [], start: i, end: j }, j];
+        }
+
+        const [root, end] = _parse(0);
+        if (end !== n) {
+            throw new Error(`表达式解析到位置 ${end} 后仍有剩余字符`);
+        }
+        return root;
+    }
+
+    function collectAtoms(node) {
+        if (node.children.length === 0) return [node.op];
+
+        const result = [];
+        for (const child of node.children) {
+            result.push(...collectAtoms(child));
+        }
+        return result;
+    }
+
+    return function extractAtoms(expr) {
+        return collectAtoms(parse(expr));
+    };
+})();
+
+// ===== 目标方法 =====
+function getDependentRules(steps) {
+    // 首次调用时构建，之后 O(1) 取用；调用方无需关心缓存细节
+    const ruleOrder = RuleOrderStore.getOrder();
+
+    // 记录规则在 ruleOrder 中的位置
+    const orderIndex = new Map(
+        Array.from(ruleOrder, (name, i) => [name, i])
+    );
+
+    // 解析每个 step 的 [0]，取并集，保留首次出现顺序
+    const seen = new Set();
+
+    for (const step of steps) {
+        const expr = step[0];
+        if (typeof expr !== 'string') continue;
+
+        const atoms = extractAtoms(expr);
+        for (const atom of atoms) {
+            seen.add(atom);
+        }
+    }
+
+    const unknown = [];
+    const known = [];
+
+    for (const name of seen) {
+        if (orderIndex.has(name)) {
+            known.push(name);
+        } else {
+            unknown.push(name);
+        }
+    }
+
+    // ruleOrder 中越靠后的，最终越靠前
+    known.sort((a, b) => orderIndex.get(b) - orderIndex.get(a));
+
+    // ruleOrder 中没有的排最前，并加 #
+    return [
+        ...unknown.map(name => `#${name}`),
+        ...known,
+    ];
+}
+
+// 把单个定理转成证明项文本（只使用前 3 项，输出中不含 tag）
+function convertTheorem(name, sequent, tag, steps) {
+    // 输出首行：名字 + 内容（去掉原来的 tag 部分）
+    let output = `${name} ${sequent}\n`;
+
+    // 可选：依赖推理规则
+    if (isProofOptionEnabled('dependentRules')) {
+        const deps = getDependentRules(steps);
+        output += `[依赖：${deps.join(', ')}]\n`;
+    }
+
+    let left = '';
+    if (sequent.includes('⊢')) {
+        left = sequent.split('⊢')[0];
+    } else {
+        left = sequent;
+    }
+    // 只按顶层逗号切分前提，避免把有序对 "($a1,$b1)" 或 "{$0,$1}" 拆开
+    const hyps = left.trim()
+        ? splitTopLevelCommas(left).map(s => s.trim()).filter(s => s.length > 0)
+        : [];
+
+    const lines = [];
+    for (const h of hyps) {
+        lines.push(`hyp ${h}`);
+    }
+
+    const base = hyps.length;
+    for (let i = 0; i < steps.length; i++) {
+        const [rule, refs, vars] = steps[i];
+        const currentLine = base + i;
+        const args = [];
+        for (const r of refs) {
+            if (r < 0) {
+                args.push(String(currentLine + r));
+            } else {
+                args.push(String(r));
+            }
+        }
+        if (Array.isArray(vars)) args.push(...vars);
+        if (args.length > 0) {
+            lines.push(`d ${rule} ${args.join(' ')}`);
+        } else {
+            lines.push(`d ${rule}`);
+        }
+    }
+    return output + lines.join('\n');
+}
+
+/*
+
+// 遍历定理映射对象，逐个转换（跳过 tag 为“元规则生成*”的定理）
+function processTheoremsObject(obj) {
+    const results = [];
+    for (const [name, value] of Object.entries(obj)) {
+        if (!isTheoremDef(value)) continue;
+        const [sequent, tag, steps] = value; // 只取前 3 项，忽略后续无关项
+        // 略过所有带有 元规则生成* 的证明
+        if (tag === '元规则生成*') continue;
+        results.push(convertTheorem(name, sequent, tag, steps));
+    }
+    return results.join('\n\n');
+}
+
+// 从解码后的完整文本中提取所有定理证明项
+function extractProofsFromDecoded(decoded) {
+    const candidates = findAllJsonObjects(decoded);
+    for (const str of candidates) {
+        let obj;
+        try {
+            obj = JSON.parse(str);
+        } catch (e) {
+            continue;
+        }
+        if (isTheoremMap(obj)) {
+            return processTheoremsObject(obj);
+        }
+    }
+    throw new Error('未找到包含定理定义的对象');
+}
+
+*/
+
+// 遍历推理规则表
+
+function extractProofsFromRules(rules) {
+    if (!rules || typeof rules !== 'object' || Array.isArray(rules)) {
+        throw new Error('推理规则表不是对象');
+    }
+
+    const opts = getProofOptions();
+    const specials = [];  // 特殊条目：name以dv/df/dc开头，tag为'元规则生成*'，steps为null
+    const normals = [];   // 普通定理条目
+
+    for (const [name, value] of Object.entries(rules)) {
+        // 优先处理特殊条目（此时 steps 为 null，不满足 isTheoremDef 的数组要求）
+        if (
+            Array.isArray(value) && value.length >= 3 &&
+            typeof value[0] === 'string' &&          // sequent
+            typeof value[1] === 'string' &&          // tag
+            value[1] === '元规则生成*' &&
+            value[2] === null &&
+            (name.startsWith('dv') || name.startsWith('df') || name.startsWith('dc'))
+        ) {
+            // 仅在开启“自定义推理规则”时显示
+            if (opts.customRules) {
+                specials.push(`${name} ${value[0]}`);
+            }
+            continue;
+        }
+
+        // 普通定理：必须满足 isTheoremDef，且 tag 不是 '元规则生成*'
+        if (!isTheoremDef(value)) continue;
+        const [sequent, tag, steps] = value;
+        if (tag === '元规则生成*') continue;
+        normals.push(convertTheorem(name, sequent, tag, steps));
+    }
+
+    // 特殊条目排在最前面，之间不空行；之后空一行再接原来的输出内容
+    let output = specials.join('\n');
+    if (normals.length > 0) {
+        if (specials.length > 0) {
+            output += '\n\n';
+        }
+        output += normals.join('\n\n');
+    }
+    return output;
+}
+
+/*
+function extractProofsFromRules(rules) {
+    if (!rules || typeof rules !== 'object' || Array.isArray(rules)) {
+        throw new Error('推理规则表不是对象');
+    }
+    const results = [];
+    for (const [name, value] of Object.entries(rules)) {
+        if (!isTheoremDef(value)) continue;
+        const [sequent, tag, steps] = value;
+        if (tag === '元规则生成*') continue;
+        results.push(convertTheorem(name, sequent, tag, steps));
+    }
+    return results.join('\n\n');
+}
+*/
+
+// ==================== 类型层证明项提取 ====================
+function extractTypeLevelProofs(raw) {
+    let arr;
+    try {
+        arr = JSON.parse(raw);
+    } catch (e) {
+        throw new Error('第四部分不是合法 JSON：' + e.message);
+    }
+    if (!Array.isArray(arr)) throw new Error('第四部分不是数组');
+    return arr.map(s => String(s)).join('\n');
+}
+
+function resolveRuleContent(name, rules) {
+    // 1. 优先查硬编码字典
+    if (Object.prototype.hasOwnProperty.call(HARD_CODED_CONTENT, name)) {
+        return String(HARD_CODED_CONTENT[name]);
+    }
+    // 2. 再查推理规则表：value = [sequent, tag, steps, ...]
+    if (rules && typeof rules === 'object' && !Array.isArray(rules)
+        && Object.prototype.hasOwnProperty.call(rules, name)) {
+        const v = rules[name];
+        if (Array.isArray(v) && typeof v[0] === 'string') {
+            return v[0];
+        }
+    }
+    // 3. 都没有
+    return '表达式因未知错误而丢失';
+}
+
+// ==================== 排列表树状展示 ====================
+/*
+    排列表形如：
+      ["<f>命题逻辑::80::1kbb30::+", "<f>公理::4::ohryb4::+", "mp", ...]
+    - "<f>" 前缀表示文件夹
+    - 参数以 "::" 分隔（注意：无空格），第一项是名字，第二项是其下（不含自己）项的总数
+    - 其余项为推理规则名称
+*/
+function parseFolderItem(item) {
+    let body = item.slice(5); // 去掉 "< f >"
+    // if (body.startsWith('>')) body = body.slice(1); // 去掉可能多余的 '>'
+    const segs = body.split('::');
+    const name = (segs[0] || '').trim();
+    const count = Number.parseInt(segs[1], 10);
+    return { name, count: Number.isFinite(count) ? count : 0 };
+}
+
+function buildArrangementTree(items, rules) {
+    const showContent = isProofOptionEnabled('contentDisplay');
+
+    function parse(pos, end) {
+        const nodes = [];
+        while (pos < end) {
+            const item = items[pos];
+            if (typeof item === 'string' && item.startsWith('< f >')) {
+                const { name, count } = parseFolderItem(item);
+                const childEnd = Math.min(pos + 1 + count, end);
+                const children = parse(pos + 1, childEnd);
+                nodes.push({ type: 'folder', name, count, children });
+                pos = childEnd;
+            } else {
+                const name = String(item);
+                const content = showContent ? resolveRuleContent(name, rules) : '';
+                nodes.push({ type: 'rule', name, content });
+                pos++;
+            }
+        }
+        return nodes;
+    }
+    return parse(0, items.length);
+}
+
+function renderTree(nodes, prefix = '') {
+    let out = '';
+    nodes.forEach((node, idx) => {
+        const isLast = idx === nodes.length - 1;
+        const branch = isLast ? '└─ ' : '├─ ';
+        const childPrefix = prefix + (isLast ? '   ' : '│  ');
+        if (node.type === 'folder') {
+            out += prefix + branch + '📁 ' + node.name + '\n';
+            out += renderTree(node.children, childPrefix);
+        } else {
+            const suffix = node.content ? ' ' + node.content : '';
+            out += prefix + branch + node.name + suffix + '\n';
+        }
+    });
+    return out;
+}
+
+// ==================== 文件上传 ====================
+fileInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+        encodedTextarea.value = ev.target.result;
+        clearMessages();
+        showInfo(`已加载文件：${file.name}`);
+        decodeAction();
+    };
+    reader.onerror = function () { showError('文件读取失败'); };
+    reader.readAsText(file);
+    fileInput.value = '';
+});
+
+// ==================== 解码 ====================
+btnDecode.addEventListener('click', decodeAction);
+
+/* ★ 改动：解码成功后让规则顺序表缓存失效 */
+function decodeAction() {
+    clearMessages();
+    const encoded = encodedTextarea.value.trim();
+    if (!encoded) { showError('请先输入或上传编码文档'); return; }
+    const mode = modeSelect.value;
+    try {
+        const decoded = decodeProgressDoc(encoded, mode);
+        jsonTextarea.value = decoded;
+        RuleOrderStore.invalidate();   // ← 新增：解码文本已变，派生缓存失效
+        showInfo('解码成功！现在可以查看/编辑解码文本。');
+        btnDownload.disabled = true;
+    } catch (e) {
+        showError('解码失败：' + e.message);
+        console.error(e);
+    }
+}
+
+/* ★ 新增：用户手动编辑解码文本时也让缓存失效
+   （程序化赋值不触发 input，所以 decodeAction 里必须单独再调一次） */
+jsonTextarea.addEventListener('input', () => {
+    RuleOrderStore.invalidate();
+});
+
+// ==================== 编码 ====================
+btnEncode.addEventListener('click', function () {
+    clearMessages();
+    const json = jsonTextarea.value;
+    if (!json) { showError('解码文本框为空，请先解码或粘贴内容'); return; }
+    const mode = modeSelect.value;
+    try {
+        const encoded = encodeProgressDoc(json, mode);
+        encodedTextarea.value = encoded;
+        showInfo('编码成功！可以下载编码结果。');
+        btnDownload.disabled = false;
+    } catch (e) {
+        showError('编码失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// ==================== 清空 ====================
+/* ★ 改动：清空时让规则顺序表缓存失效 */
+btnClear.addEventListener('click', function () {
+    encodedTextarea.value = '';
+    jsonTextarea.value = '';
+    proofTextarea.value = '';
+    btnDownload.disabled = true;
+    RuleOrderStore.invalidate();       // ← 新增
+    clearMessages();
+});
+
+// ==================== 下载 ====================
+btnDownload.addEventListener('click', function () {
+    const content = encodedTextarea.value;
+    if (!content) { showError('没有可下载的内容'); return; }
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'progress_document.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showInfo('下载已开始');
+});
+
+// ==================== 提取证明项（推理规则表） ====================
+btnExtractProofs.addEventListener('click', function () {
+    clearMessages();
+    try {
+        const sec3 = getSection3();
+        const text = extractProofsFromRules(sec3.rules);
+        proofTextarea.value = text || '（推理规则表中未找到可转换的定理定义）';
+        showInfo('证明项提取成功！');
+    } catch (e) {
+        proofTextarea.value = '';
+        showError('提取证明项失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// ==================== 提取类型层证明项 ====================
+btnExtractTypeProofs.addEventListener('click', function () {
+    clearMessages();
+    try {
+        const raw = getSection4Raw();
+        const text = extractTypeLevelProofs(raw);
+        proofTextarea.value = text || '（类型层证明项为空）';
+        showInfo('类型层证明项提取成功！');
+    } catch (e) {
+        proofTextarea.value = '';
+        showError('提取类型层证明项失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// ==================== 展示排列表 ====================
+btnShowArrangement.addEventListener('click', function () {
+    clearMessages();
+    try {
+        const sec3 = getSection3();
+        const items = sec3.arrangement;
+        if (!Array.isArray(items)) throw new Error('排列表不是数组');
+        const tree = buildArrangementTree(items, sec3.rules);
+        const header = `排列表（共 ${items.length} 项）\n\n`;
+        proofTextarea.value = header + renderTree(tree);
+        showInfo('排列表展示成功！');
+    } catch (e) {
+        proofTextarea.value = '';
+        showError('展示排列表失败：' + e.message);
+        console.error(e);
+    }
+});
+
+// ==================== 初始化 ====================
+initProofOptions();
+btnDownload.disabled = true;
+clearMessages();
+
+        </script>
+</body>
+
+<!--
+更新日志
+
+项目：进度文档解码 / 编码器（ddtparse）
+
+版本历史：
+- v0：ddtparse.html，初始版本。
+- v1b0：基础迭代。
+- v1b1（Fix 1）：去除硬编码 si。
+- v1b2（Fix 2、Fix 3）：跳过 tag 为“元规则生成*”的定理；定理证明项不再限制为 3 项；修复无法处理使用临时变量的定理的问题。
+- v1：ddtparse_new.html（Fix 4）：对有序对出现在 hyp 中的情况特判，修复 d() 的逗号切分。
+- v2b0（Fix 5、Fix 6）：修复 d{..} 的逗号切分；修复有序对出现在假设内时逗号被误截断的问题；去掉输出中的 tag 部分。
+- v2b1（Fix 7）：修正第三部分的解析规则。
+- v2：ddtparse_completely.html（Fix 8、Fix 9）：修正排列表文件夹解析分隔符为“::”；修正文件夹标识为“< f >”；作为 v2 大版本功能，新增存档编码 / 解码器与证明项提取。
+- v3：ddtparse_completely_fixed.html（Fix 10）：加入谓词、函数、常量定义的元规则生成；证明项输出加入已定义的谓词和函数定义；重制并优化页面风格。
+- v4b1：加入新选项卡与框架：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则。
+- v4b2：完成自定义推理规则的修改。
+- v4b3：完成在证明项中加入依赖推理规则的方法，并加入全局常量优化。
+- v4b4：完成定理内容显示的巨型内联硬编码表。
+- v4：ddtparse_v4，整体优化与修复，新选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则。
+-->
+
+</html>
