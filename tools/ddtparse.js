@@ -305,6 +305,55 @@ const THEOREM_CONTENT_DICT = {
     'dR<=': '⊢($x@R)>(($y@R)>(($x<=$y)<>($x<$y)))'
 };
 
+/* ========== 推理规则分类（用于搜索结果的辅助简化显示） ========== */
+
+// 每个分类：[分类名, 若干片段]；片段为 [单个键] 或 [起始键, 结束键]（均含端点）
+const CATEGORY_DEFS = [
+    ['命题逻辑公理与定义', [['mp', 'd|']]],
+    ['命题逻辑定理',       [['.i', '.<>r|']]],
+    ['一阶逻辑公理与定义', [['a4', 'dE!']]],
+    ['一阶逻辑定理',       [['.nEVn', '.E!cn<>'], ['.<>rV'], ['.<>rE'], ['.<>rE!'], ['.=s', '.E!']]],
+    ['PA 公理与定义',      [['apn1', 'dPrime']]],
+    ['PA 定理',            [['.=Se', '.*e']]],
+    ['ZFC 公理与定义',     [['aExt', '.achoice']]],
+    ['ZFC 定理',           [['.<i', '.X'], ['.{|@}cn'], ['.{@|}cn']]],
+    ['数系公理与定义',     [['d0'], ['dS'], ['dN'], ['dfZ', 'dZ2'], ['dQ-2', 'dR<=']]],
+    ['数系定理',           [['.pn1', '.pn5'], ['.N@+', '.<=Order'], ['.@Z'], ['.Zr'], ['.Z+s']]],
+];
+
+// 规则名 → 分类名
+const RULE_CATEGORY_MAP = new Map();
+// 分类名的输出顺序（按 CATEGORY_DEFS 的定义顺序）
+const CATEGORY_ORDER = [];
+
+(function buildCategoryMap() {
+    const keys = Object.keys(THEOREM_CONTENT_DICT);
+
+    for (const [catName, segments] of CATEGORY_DEFS) {
+        CATEGORY_ORDER.push(catName);
+        for (const seg of segments) {
+            let names;
+            if (seg.length === 1) {
+                names = keys.includes(seg[0]) ? [seg[0]] : [];
+            } else {
+                const si = keys.indexOf(seg[0]);
+                const ei = keys.indexOf(seg[1]);
+                if (si !== -1 && ei !== -1 && si <= ei) {
+                    names = keys.slice(si, ei + 1);
+                } else {
+                    console.warn(`分类范围无效：${seg[0]} ~ ${seg[1]}`);
+                    names = [];
+                }
+            }
+            for (const n of names) {
+                if (!RULE_CATEGORY_MAP.has(n)) {
+                    RULE_CATEGORY_MAP.set(n, catName);
+                }
+            }
+        }
+    }
+})();
+
 // ==================== 基础映射表（与游戏一致） ====================
 
 const splittor = "-(=)-";
@@ -451,6 +500,9 @@ const btnClear = document.getElementById('btnClear');
 const btnDownload = document.getElementById('btnDownload');
 const errorMsg = document.getElementById('errorMsg');
 const infoMsg = document.getElementById('infoMsg');
+const ruleSearchInput = document.getElementById('ruleSearchInput');
+const ruleSearchBox   = document.getElementById('ruleSearchBox');
+const btnSearchRule   = document.getElementById('btnSearchRule');
 
 // 显示错误
 function showError(message) {
@@ -1102,6 +1154,8 @@ btnClear.addEventListener('click', function () {
     encodedTextarea.value = '';
     jsonTextarea.value = '';
     proofTextarea.value = '';
+    ruleSearchInput.value = '';               // ← 新增
+    ruleSearchBox.style.display = 'none';     // ← 新增
     btnDownload.disabled = true;
     RuleOrderStore.invalidate();
     clearMessages();
@@ -1153,6 +1207,208 @@ btnExtractTypeProofs.addEventListener('click', function () {
     }
 });
 
+// ==================== 推理规则搜索 ====================
+
+// 取可搜索的规则名全集：排列表中显示的所有推理规则
+function getSearchCandidates() {
+    return Array.from(RuleOrderStore.getOrder());
+}
+
+// 原子推理规则：THEOREM_CONTENT_DICT 中的规则，以及 processUnknownRules 聚合出的类别名
+const ATOMIC_EXTRA_RULES = new Set(['natop', 'dZn', 'dZop']);
+
+function isAtomicRule(name) {
+    return Object.prototype.hasOwnProperty.call(THEOREM_CONTENT_DICT, name)
+        || ATOMIC_EXTRA_RULES.has(name);
+}
+
+// 递归收集依赖闭包（迭代栈实现，避免深递归）
+// 包含根节点；闭包中每个节点要么原子、要么无 steps（视作叶子）
+function computeRuleDependencyClosure(root, rules) {
+    const closure = new Set();
+    const visited = new Set();
+    const stack = [root];
+
+    while (stack.length) {
+        const n = stack.pop();
+        if (visited.has(n)) continue;
+        visited.add(n);
+
+        closure.add(n);
+
+        if (isAtomicRule(n)) continue;
+
+        const v = rules[n];
+        if (!isTheoremDef(v)) continue;
+        const steps = v[2];
+        if (!Array.isArray(steps)) continue;
+
+        const deps = getDependentRules(steps);
+        for (const d of deps) {
+            if (!visited.has(d)) stack.push(d);
+        }
+    }
+    return closure;
+}
+
+// 按「getDependentRules 的排序」排序一个规则集合
+// 规则名：known 按 ruleOrder 位置降序 → unknown（processUnknownRules）→ 聚合名 natop/dZn/dZop
+function sortRulesByDependentOrder(nameSet, orderIndex) {
+    const known   = [];
+    const unknown = [];
+    const aggs    = new Set();
+
+    for (const n of nameSet) {
+        if (ATOMIC_EXTRA_RULES.has(n)) {
+            aggs.add(n);                // 聚合名原样保留，不再过 processUnknownRules
+        } else if (orderIndex.has(n)) {
+            known.push(n);
+        } else {
+            unknown.push(n);
+        }
+    }
+
+    // known：orderIndex 大的在前（与 getDependentRules 一致）
+    known.sort((a, b) => orderIndex.get(b) - orderIndex.get(a));
+
+    // 聚合名固定顺序 natop, dZn, dZop
+    const aggHead = ['natop', 'dZn', 'dZop'].filter(x => aggs.has(x));
+
+    // unknown 过一遍 processUnknownRules（自动挑出 natop/dZn/dZop 类型并给其余加 #）
+    const processedUnknown = processUnknownRules(unknown);
+
+    return [...aggHead, ...processedUnknown, ...known];
+}
+
+let searchDismissed = false;   // 点击外部后关闭联想，直到下一次输入才复活
+
+const escapeHtml = s => s.replace(/[&<>]/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function updateRuleSuggestions() {
+    const q = ruleSearchInput.value;
+    if (!q || searchDismissed) {
+        ruleSearchBox.style.display = 'none';
+        return;
+    }
+
+    let candidates = [];
+    try {
+        candidates = getSearchCandidates();
+    } catch (e) {
+        ruleSearchBox.innerHTML =
+            '<div class="rule-search-empty">请先解码后再搜索</div>';
+        ruleSearchBox.style.display = 'block';
+        return;
+    }
+
+    const lq   = q.toLowerCase();
+    const hits = candidates
+        .filter(s => s.toLowerCase().startsWith(lq))
+        .slice(0, 100);
+
+    if (!hits.length) {
+        ruleSearchBox.innerHTML =
+            '<div class="rule-search-empty">无匹配规则</div>';
+        ruleSearchBox.style.display = 'block';
+        return;
+    }
+    ruleSearchBox.innerHTML = hits.map(s =>
+        `<div data-name="${escapeHtml(s)}">` +
+            `<b>${escapeHtml(s.slice(0, q.length))}</b>` +
+            `${escapeHtml(s.slice(q.length))}` +
+        `</div>`
+    ).join('');
+    ruleSearchBox.style.display = 'block';
+}
+
+function selectRuleSuggestion(name) {
+    ruleSearchInput.value = name;
+    searchDismissed = true;
+    ruleSearchBox.style.display = 'none';
+    ruleSearchInput.focus();
+}
+
+function searchRuleAction() {
+    clearMessages();
+    const name = ruleSearchInput.value.trim();
+    if (!name) {
+        showError('请先输入推理规则名称');
+        return;
+    }
+    searchDismissed = true;
+    ruleSearchBox.style.display = 'none';
+
+    try {
+        const sec3  = getSection3();
+        const rules = sec3.rules || {};
+        const order = RuleOrderStore.getOrder();
+        const orderIndex = new Map(Array.from(order, (n, i) => [n, i]));
+
+        const inOrder = orderIndex.has(name);
+        const inDict  = Object.prototype.hasOwnProperty.call(THEOREM_CONTENT_DICT, name);
+        const inRules = Object.prototype.hasOwnProperty.call(rules, name);
+        if (!inOrder && !inDict && !inRules) {
+            proofTextarea.value = '';
+            showError(`未找到规则：${name}`);
+            return;
+        }
+
+        // 递归收集依赖闭包（包含 name 自身）
+        const closure = computeRuleDependencyClosure(name, rules);
+
+        // 分类替换：只要闭包中出现某分类的任意规则，就合并为该分类名
+        const triggeredCategories = new Set();
+        const remainingRules = new Set();
+
+        for (const r of closure) {
+            const cat = RULE_CATEGORY_MAP.get(r);
+            if (cat) {
+                triggeredCategories.add(cat);
+            } else {
+                remainingRules.add(r);
+            }
+        }
+
+        // 分类名按 CATEGORY_ORDER 排在最前
+        const sortedCategories = CATEGORY_ORDER.filter(c => triggeredCategories.has(c));
+
+        // 剩余规则：属于排列表的按排列顺序（orderIndex 升序）；
+        // 不属于排列表的（如 natop、dZn、dZop、#xxx）按名称排序放在最后
+        const remainingInOrder = [];
+        const remainingNotInOrder = [];
+        for (const r of remainingRules) {
+            if (orderIndex.has(r)) {
+                remainingInOrder.push(r);
+            } else {
+                remainingNotInOrder.push(r);
+            }
+        }
+        remainingInOrder.sort((a, b) => orderIndex.get(a) - orderIndex.get(b));
+        remainingNotInOrder.sort((a, b) => a.localeCompare(b));
+
+        // 聚合名改为中文显示
+        const displayName = (r) => {
+            if (r === 'natop') return '自然数自动计算';
+            if (r === 'dZn')   return '整数定义';
+            if (r === 'dZop')  return '整数自动计算';
+            return r;
+        };
+
+        const outputLines = [
+            ...sortedCategories,
+            ...remainingInOrder.map(displayName),
+            ...remainingNotInOrder.map(displayName),
+        ];
+
+        proofTextarea.value = outputLines.join('\n');
+        showInfo(`已搜索规则 ${name}，简化后共 ${outputLines.length} 项`);
+    } catch (e) {
+        proofTextarea.value = '';
+        showError('搜索失败：' + e.message);
+    }
+}
+
 // ==================== 展示排列表 ====================
 btnShowArrangement.addEventListener('click', function () {
     clearMessages();
@@ -1168,6 +1424,41 @@ btnShowArrangement.addEventListener('click', function () {
         proofTextarea.value = '';
         showError('展示排列表失败：' + e.message);
         console.error(e);
+    }
+});
+
+// ==================== 推理规则搜索事件 ====================
+btnSearchRule.addEventListener('click', searchRuleAction);
+
+ruleSearchInput.addEventListener('input', () => {
+    searchDismissed = false;
+    updateRuleSuggestions();
+});
+
+ruleSearchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchRuleAction();
+    } else if (e.key === 'Escape') {
+        searchDismissed = true;
+        ruleSearchBox.style.display = 'none';
+    }
+});
+
+// 点击联想行：填充输入框（不自动搜索，与示例一致）
+ruleSearchBox.addEventListener('mousedown', e => {
+    const row = e.target.closest('div[data-name]');
+    if (!row) return;
+    e.preventDefault();
+    selectRuleSuggestion(row.dataset.name);
+});
+
+// 点击其他任何地方：关闭联想
+document.addEventListener('mousedown', e => {
+    if (!ruleSearchInput.contains(e.target) &&
+        !ruleSearchBox.contains(e.target)) {
+        searchDismissed = true;
+        ruleSearchBox.style.display = 'none';
     }
 });
 

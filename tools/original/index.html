@@ -4,8 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>历史版本 · 小工具集合</title>
-    <link rel="stylesheet" href="../shared.css">
+    <link rel="stylesheet" href="../base.css">
     <link rel="stylesheet" href="../nav.css">
+    <style>
+        /* ===== 本页专属：版本条目列表 ===== */
+        .version-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .version-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 13.5px;
+            transition: all var(--transition);
+        }
+        .version-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .version-item .ver-tag {
+            flex: none;
+            min-width: 62px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-align: center;
+            font-family: var(--font-mono);
+            letter-spacing: 0.3px;
+        }
+        .version-item .ver-file {
+            flex: none;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            min-width: 200px;
+        }
+        .version-item .ver-desc {
+            flex: 1;
+            min-width: 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .version-item:hover .ver-file,
+        .version-item:hover .ver-desc {
+            color: var(--primary);
+        }
+        .version-item .ver-arrow {
+            flex: none;
+            opacity: 0.4;
+            transition: all var(--transition);
+        }
+        .version-item:hover .ver-arrow {
+            opacity: 1;
+            transform: translateX(2px);
+        }
+
+        /* 当前最新版高亮 */
+        .version-item.current {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+        .version-item.current .ver-tag {
+            background: var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .version-item { flex-wrap: wrap; gap: 8px; }
+            .version-item .ver-tag { min-width: 0; }
+            .version-item .ver-file {
+                flex: 1 1 100%;
+                order: 3;
+                min-width: 0;
+                padding-left: 2px;
+            }
+            .version-item .ver-desc {
+                flex: 1 1 100%;
+                order: 4;
+                padding-left: 2px;
+            }
+        }
+    </style>
 </head>
 <body class="page-nav">
     <div class="container">
@@ -25,19 +116,26 @@
         <!-- ============ 进度文档解码 / 编码器 ============ -->
         <section class="version-section" id="ddtparse">
             <div class="section-header">
-                <h2>🔧 进度文档解码 / 编码器 <span class="badge">最新 v4.3</span></h2>
-                <a class="card-link primary" href="../ddtparse-v4.3.html">打开最新版 →</a>
+                <h2>🔧 进度文档解码 / 编码器 <span class="badge">最新 v5</span></h2>
+                <a class="card-link primary" href="../ddtparse.html">打开最新版 →</a>
             </div>
             <div class="version-list">
 
-                <a class="version-item current" href="ddtparse/ddtparse_v4.3.html">
+                <a class="version-item current" href="ddtparse/ddtparse_v5.html">
+                    <span class="ver-tag">v5</span>
+                    <span class="ver-file">ddtparse_v5.html</span>
+                    <span class="ver-desc">增加搜索推理规则并递归搜索依赖推理规则</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="ddtparse/ddtparse_v4.3.html">
                     <span class="ver-tag">v4.3</span>
                     <span class="ver-file">ddtparse_v4.3.html</span>
                     <span class="ver-desc">重制页面 css</span>
                     <span class="ver-arrow">→</span>
                 </a>
 
-                <a class="version-item current" href="ddtparse/ddtparse_v4.2.html">
+                <a class="version-item" href="ddtparse/ddtparse_v4.2.html">
                     <span class="ver-tag">v4.2</span>
                     <span class="ver-file">ddtparse_v4.2.html</span>
                     <span class="ver-desc">修复名称映射表、修改依赖推理规则提取</span>
@@ -93,6 +191,13 @@
                     <span class="ver-arrow">→</span>
                 </a>
 
+                <a class="version-item" href="ddtparse/ddtparse_new.html">
+                    <span class="ver-tag">v2.2</span>
+                    <span class="ver-file">ddtparse_new.html</span>
+                    <span class="ver-desc">同上（v2.2 的另一命名版本）</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
                 <a class="version-item" href="ddtparse/ddtparse_v2.1.html">
                     <span class="ver-tag">v2.1</span>
                     <span class="ver-file">ddtparse_v2.1.html</span>
@@ -104,13 +209,6 @@
                     <span class="ver-tag">v2</span>
                     <span class="ver-file">ddtparse_v2.html</span>
                     <span class="ver-desc">加入证明项提取功能</span>
-                    <span class="ver-arrow">→</span>
-                </a>
-
-                <a class="version-item" href="ddtparse/ddtparse_new.html">
-                    <span class="ver-tag">v2</span>
-                    <span class="ver-file">ddtparse_new.html</span>
-                    <span class="ver-desc">同上（v2 的另一命名版本）</span>
                     <span class="ver-arrow">→</span>
                 </a>
 
@@ -193,7 +291,7 @@
         </section>
 
         <div class="footer">
-            历史版本归档 · 当前版本请返回 <a href="../index.html" style="color:var(--primary);text-decoration:none;font-weight:600;">工具导航</a>
+            历史版本归档 · 当前版本请返回 <a href="../index.html">工具导航</a>
         </div>
     </div>
 </body>

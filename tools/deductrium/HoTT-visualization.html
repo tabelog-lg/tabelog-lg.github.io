@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HoTT - 高阶归纳类型 (HITs) 交互可视化</title>
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --surface: #141428;
+            --text: #e0e0f0;
+            --text-secondary: #a0a0c0;
+            --accent: #7b8cff;
+            --accent-glow: #4a5eff;
+            --gold: #f0c060;
+            --gold-glow: #ff9500;
+            --radius: 16px;
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg); overflow: hidden; height: 100vh; width: 100vw;
+            user-select: none; -webkit-user-select: none; cursor: grab;
+        }
+        body:active { cursor: grabbing; }
+        #canvas-container { position: fixed; inset: 0; z-index: 1; }
+        canvas { display: block; }
+        #header {
+            position: fixed; top:0; left:0; right:0; z-index:10; padding:18px 24px;
+            display:flex; align-items:center; justify-content:space-between; pointer-events:none;
+        }
+        #header>* { pointer-events:auto; }
+        #title-group { display:flex; align-items:center; gap:12px; }
+        #logo {
+            width:42px; height:42px; border-radius:50%;
+            background: conic-gradient(from 0deg, var(--accent-glow), var(--gold-glow), var(--accent-glow));
+            display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; color:#fff;
+            box-shadow: 0 0 28px rgba(74,94,255,0.5),0 0 8px rgba(240,192,96,0.4);
+            animation: logo-pulse 3s ease-in-out infinite;
+        }
+        @keyframes logo-pulse {
+            0%,100% { box-shadow:0 0 28px rgba(74,94,255,0.5),0 0 8px rgba(240,192,96,0.4); }
+            50% { box-shadow:0 0 40px rgba(74,94,255,0.75),0 0 18px rgba(240,192,96,0.6); }
+        }
+        #title { font-size:1.5rem; font-weight:700; color:#fff; letter-spacing:-0.02em; text-shadow:0 0 20px rgba(180,190,255,0.5); }
+        #subtitle { font-size:0.8rem; color:var(--text-secondary); font-weight:400; letter-spacing:0.04em; }
+        #controls {
+            position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:10;
+            display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:8px 10px;
+            background:var(--surface); border-radius:40px; border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 8px 32px rgba(0,0,0,0.5); backdrop-filter:blur(16px); max-width:95vw;
+        }
+        .type-btn {
+            padding:8px 15px; border-radius:28px; border:none; cursor:pointer; font-size:0.78rem;
+            font-weight:600; letter-spacing:0.02em; transition:var(--transition);
+            background:transparent; color:var(--text-secondary); white-space:nowrap; font-family:inherit;
+            display:flex; align-items:center; gap:4px;
+        }
+        .type-btn:hover { color:#fff; background:rgba(255,255,255,0.06); }
+        .type-btn.active { background:var(--accent); color:#fff; box-shadow:0 4px 20px rgba(74,94,255,0.5); font-weight:700; }
+        .type-btn .icon { font-size:1rem; }
+        #info-panel {
+            position:fixed; top:130px; right:20px; z-index:10; background:var(--surface);
+            border-radius:var(--radius); padding:18px 20px; border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 8px 32px rgba(0,0,0,0.45); backdrop-filter:blur(12px); max-width:260px;
+        }
+        #info-panel h3 { font-size:1rem; font-weight:700; color:#fff; margin-bottom:4px; }
+        #info-panel .type-name { font-size:0.7rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
+        #info-panel .constructors { list-style:none; display:flex; flex-direction:column; gap:6px; }
+        #info-panel .constructors li { font-size:0.74rem; color:var(--text-secondary); padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:8px; border-left:3px solid var(--accent); line-height:1.3; }
+        #info-panel .constructors li.path-ctor { border-left-color:var(--gold); }
+        #info-panel .constructors li.surface-ctor { border-left-color:#55ddaa; }
+        #info-panel .constructors li .ctor-label { font-weight:700; color:#fff; font-size:0.72rem; display:block; margin-bottom:1px; }
+        #info-panel .constructors li .ctor-desc { font-size:0.68rem; opacity:0.8; }
+        #click-label {
+            position:fixed; z-index:100; pointer-events:none; background:rgba(20,20,40,0.9);
+            backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:12px;
+            padding:8px 14px; color:#fff; font-family:inherit; box-shadow:0 8px 20px rgba(0,0,0,0.6);
+            display:none; white-space:nowrap;
+        }
+        #click-label .ctor-name { font-weight:700; font-size:0.85rem; color:#f0c060; display:block; margin-bottom:3px; }
+        #click-label .ctor-desc { font-size:0.7rem; opacity:0.8; color:#ccc; }
+        #legend { position:fixed; bottom:140px; left:24px; z-index:10; display:flex; flex-direction:column; gap:6px; pointer-events:none; }
+        .legend-item { display:flex; align-items:center; gap:8px; font-size:0.7rem; color:var(--text-secondary); }
+        .legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .legend-dot.base-dot { background:var(--gold); box-shadow:0 0 10px var(--gold-glow); }
+        .legend-dot.loop-dot { background:#fff; box-shadow:0 0 12px #fff; animation: legend-pulse 1.5s ease-in-out infinite; }
+        .legend-dot.surface-dot { background:#55ddaa; box-shadow:0 0 10px #55ddaa; }
+        @keyframes legend-pulse { 0%,100%{ box-shadow:0 0 8px #fff; } 50%{ box-shadow:0 0 20px #fff,0 0 30px var(--accent-glow); } }
+        @media (max-width:768px) {
+            #header { padding:10px 12px; } #title { font-size:1.1rem; } #subtitle { font-size:0.65rem; }
+            #controls { gap:4px; padding:5px 6px; } .type-btn { padding:6px 10px; font-size:0.68rem; }
+            #info-panel { top:auto; bottom:120px; right:6px; max-width:200px; padding:12px 14px; }
+            #legend { bottom:120px; left:4px; }
+        }
+    </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div id="header">
+    <div id="title-group">
+        <div id="logo">∞</div>
+        <div><div id="title">HoTT 类型可视化</div><div id="subtitle">高阶归纳类型 · 点击对象查看构造器</div></div>
+    </div>
+</div>
+<div id="legend">
+    <div class="legend-item"><span class="legend-dot base-dot"></span> base 点构造器</div>
+    <div class="legend-item"><span class="legend-dot loop-dot"></span> loop / 路径构造器</div>
+    <div class="legend-item"><span class="legend-dot surface-dot"></span> surface / 面构造器</div>
+</div>
+<div id="info-panel">
+    <h3 id="panel-title">S¹ · 圆</h3>
+    <div class="type-name" id="panel-type">1-维球面</div>
+    <ul class="constructors" id="panel-constructors"></ul>
+</div>
+<div id="click-label"><span class="ctor-name"></span><span class="ctor-desc"></span></div>
+<div id="controls">
+    <button class="type-btn active" data-type="s1"><span class="icon">○</span>S¹</button>
+    <button class="type-btn" data-type="s2"><span class="icon">◎</span>S²</button>
+    <button class="type-btn" data-type="s3"><span class="icon">🌐</span>S³</button>
+    <button class="type-btn" data-type="torus"><span class="icon">⭕</span>T²</button>
+    <button class="type-btn" data-type="interval"><span class="icon">—</span>I</button>
+    <button class="type-btn" data-type="suspension"><span class="icon">⏳</span>ΣS⁰</button>
+    <button class="type-btn" data-type="pushout"><span class="icon">⨆</span>推出</button>
+    <button class="type-btn" data-type="truncation"><span class="icon">🔲</span>集合截断</button>
+    <button class="type-btn" data-type="quotient"><span class="icon">🔗</span>集合商</button>
+    <button class="type-btn" data-type="proptrunc"><span class="icon">💠</span>命题截断</button>
+</div>
+
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('canvas-container');
+    const panelTitle = document.getElementById('panel-title');
+    const panelType = document.getElementById('panel-type');
+    const panelConstructors = document.getElementById('panel-constructors');
+    const typeButtons = document.querySelectorAll('.type-btn');
+    const clickLabel = document.getElementById('click-label');
+    const clickLabelName = clickLabel.querySelector('.ctor-name');
+    const clickLabelDesc = clickLabel.querySelector('.ctor-desc');
+
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth/window.innerHeight, 0.5, 60);
+    camera.position.set(7,3.5,8);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08;
+    controls.target.set(0,0,0); controls.minDistance = 3.5; controls.maxDistance = 20;
+    controls.maxPolarAngle = Math.PI*0.78; controls.autoRotate = true; controls.autoRotateSpeed = 0.3;
+    controls.update();
+
+    scene.add(new THREE.AmbientLight(0x2a2a50,1.8));
+    scene.add(new THREE.HemisphereLight(0x8899cc,0x223344,0.9));
+    const keyLight = new THREE.DirectionalLight(0xffffff,2.5);
+    keyLight.position.set(8,12,6); keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024; keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.camera.near = 0.5; keyLight.shadow.camera.far = 50;
+    scene.add(keyLight);
+    scene.add(new THREE.DirectionalLight(0x8899ff,1.2).position.set(-3,2,-2));
+    scene.add(new THREE.DirectionalLight(0xff9966,0.7).position.set(0,-2,4));
+
+    const starsGeo = new THREE.BufferGeometry();
+    const starsPos = new Float32Array(600*3);
+    for(let i=0;i<600;i++){ const th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1), r=14+Math.random()*14; starsPos[i*3]=r*Math.sin(ph)*Math.cos(th); starsPos[i*3+1]=r*Math.sin(ph)*Math.sin(th); starsPos[i*3+2]=r*Math.cos(ph); }
+    starsGeo.setAttribute('position',new THREE.BufferAttribute(starsPos,3));
+    const stars = new THREE.Points(starsGeo, new THREE.PointsMaterial({color:0xccccff,size:0.04,blending:THREE.AdditiveBlending,depthWrite:false,opacity:0.7}));
+    scene.add(stars);
+    const grid = new THREE.PolarGridHelper(10,48,24,64,0x333355,0x222240);
+    grid.position.y = -5; scene.add(grid);
+    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(30,30), new THREE.ShadowMaterial({opacity:0.25}));
+    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.y = -4.8; shadowPlane.receiveShadow = true; scene.add(shadowPlane);
+
+    function glowTex(inner,outer,s=128){
+        const c=document.createElement('canvas'); c.width=c.height=s;
+        const ctx=c.getContext('2d'); const g=ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+        g.addColorStop(0,inner); g.addColorStop(0.15,inner); g.addColorStop(0.5,outer); g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.fillRect(0,0,s,s); return new THREE.CanvasTexture(c);
+    }
+    const goldTex = glowTex('rgba(255,255,220,1)','rgba(255,150,30,0)');
+    const whiteTex = glowTex('rgba(255,255,255,1)','rgba(180,200,255,0)');
+    const blueTex = glowTex('rgba(200,220,255,1)','rgba(60,100,255,0)');
+    const greenTex = glowTex('rgba(180,255,220,1)','rgba(40,200,140,0)');
+    const redTex = glowTex('rgba(255,180,180,1)','rgba(255,60,80,0)');
+    const purpleTex = glowTex('rgba(220,180,255,1)','rgba(140,60,220,0)');
+    function sprite(tex,scale=0.6,op=0.9){
+        const m=new THREE.SpriteMaterial({map:tex,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,transparent:true,opacity:op});
+        const s=new THREE.Sprite(m); s.scale.set(scale,scale,1); return s;
+    }
+
+    const hitGroups = {};
+    const allNames = ['s1','s2','s3','torus','interval','suspension','pushout','truncation','quotient','proptrunc'];
+    let currentType = 's1';
+    const trans = {}; allNames.forEach(n=>trans[n]={target:n==='s1'?1:0,curr:n==='s1'?1:0,vis:n==='s1'});
+    const mainContainer = new THREE.Group(); scene.add(mainContainer);
+
+    function createS1(){
+        const g=new THREE.Group(); g.name='s1'; const inter=[];
+        const torus=new THREE.Mesh(new THREE.TorusGeometry(3,0.22,32,180),new THREE.MeshStandardMaterial({color:0x6677cc,roughness:0.25,metalness:0.5}));
+        torus.castShadow=torus.receiveShadow=true; g.add(torus);
+        const loopRing = new THREE.Mesh(new THREE.TorusGeometry(3, 0.08, 32, 180),new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false }));
+        loopRing.userData = {clickable:true, label:'loop : base = base', desc:'路径构造器（回路轨迹）'}; g.add(loopRing); inter.push(loopRing);
+        const base=new THREE.Mesh(new THREE.SphereGeometry(0.3,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.5}));
+        base.position.set(3,0,0); base.castShadow=true; base.userData={clickable:true,label:'base : S¹',desc:'点构造器'}; g.add(base); inter.push(base);
+        const glow=sprite(goldTex,1.2,1); glow.position.copy(base.position); g.add(glow);
+        const mainLoop = sprite(whiteTex, 0.9, 1);
+        mainLoop.userData = {clickable:true, label:'loop : base = base', desc:'路径构造器 — 回路上的点'}; g.add(mainLoop); inter.push(mainLoop);
+        const lpGroup = new THREE.Group(); const loopParticles = [];
+        for(let i=0;i<4;i++){ const p=sprite(whiteTex,0.35,0.7); p.userData={clickable:true,label:'loop : base = base',desc:'路径构造器'}; lpGroup.add(p); loopParticles.push(p); inter.push(p); } g.add(lpGroup);
+        g.userData={base,glow,mainLoop,loopRing,loopParticles,circleRadius:3,interactive:inter}; return g;
+    }
+
+    function createS2(){
+        const g=new THREE.Group(); g.name='s2'; const inter=[];
+        const sphere=new THREE.Mesh(new THREE.SphereGeometry(3,64,48),new THREE.MeshPhysicalMaterial({color:0x5588cc,roughness:0.3,metalness:0.1,transparent:true,opacity:0.65}));
+        sphere.castShadow=sphere.receiveShadow=true; g.add(sphere);
+        const equatorRing = new THREE.Mesh(new THREE.TorusGeometry(3, 0.07, 32, 120),new THREE.MeshBasicMaterial({ color: 0x88ffaa, transparent: true, opacity: 0.6, depthWrite: false }));
+        equatorRing.userData = {clickable:true, label:'loop (大圆)', desc:'球面上的回路'}; g.add(equatorRing); inter.push(equatorRing);
+        const base=new THREE.Mesh(new THREE.SphereGeometry(0.28,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.5}));
+        base.position.set(0,3,0); base.castShadow=true; base.userData={clickable:true,label:'base : S²',desc:'点构造器'}; g.add(base); inter.push(base);
+        const glow=sprite(goldTex,1.1,1); glow.position.copy(base.position); g.add(glow);
+        const greatCirclePoint = sprite(greenTex, 0.8, 0.95);
+        greatCirclePoint.userData = {clickable:true, label:'loop (大圆点)', desc:'沿球面大圆运动的点'}; g.add(greatCirclePoint); inter.push(greatCirclePoint);
+        const surfGroup = new THREE.Group(); const surfParticles = [];
+        for(let i=0;i<6;i++){ const p=sprite(greenTex,0.3,0.65); p.userData={clickable:true,label:'surface : refl = refl',desc:'2-路径构造器',phi:Math.random()*Math.PI,theta:Math.random()*Math.PI*2,speed:0.15+Math.random()*0.35}; surfGroup.add(p); surfParticles.push(p); inter.push(p); } g.add(surfGroup);
+        g.userData={base,glow,greatCirclePoint,equatorRing,surfParticles,sphereRadius:3,interactive:inter}; return g;
+    }
+
+    function createS3(){
+        const g=new THREE.Group(); g.name='s3'; const inter=[];
+        const outerSphere = new THREE.Mesh(new THREE.SphereGeometry(3, 64, 48),new THREE.MeshPhysicalMaterial({ color: 0x9966cc, roughness: 0.4, metalness: 0.1, transparent: true, opacity: 0.35 }));
+        outerSphere.castShadow = true; outerSphere.receiveShadow = true; g.add(outerSphere);
+        const torus1 = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.45, 32, 80),new THREE.MeshStandardMaterial({ color: 0xff8844, roughness: 0.3, metalness: 0.5 }));
+        torus1.rotation.x = Math.PI/2; torus1.castShadow = true; g.add(torus1);
+        const torus2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.45, 32, 80),new THREE.MeshStandardMaterial({ color: 0x44aaff, roughness: 0.3, metalness: 0.5 }));
+        torus2.rotation.y = Math.PI/2; torus2.castShadow = true; g.add(torus2);
+        const greatRing = new THREE.Mesh(new THREE.TorusGeometry(3, 0.06, 32, 120),new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false }));
+        greatRing.userData = { clickable: true, label: 'loop : base = base', desc: '高维路径构造器（大圆）' }; g.add(greatRing); inter.push(greatRing);
+        const base = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshStandardMaterial({ color: 0xf0c040, roughness: 0.1, metalness: 0.8, emissive: 0xff8800, emissiveIntensity: 1.5 }));
+        base.position.set(0, 3, 0); base.castShadow = true; base.userData = { clickable: true, label: 'base : S³', desc: '点构造器' }; g.add(base); inter.push(base);
+        const baseGlow = sprite(goldTex, 1.3, 1); baseGlow.position.copy(base.position); g.add(baseGlow);
+        const loopPoint = sprite(whiteTex, 0.85, 1); loopPoint.userData = { clickable: true, label: 'loop (高维回路)', desc: '沿大圆运动的点' }; g.add(loopPoint); inter.push(loopPoint);
+        const fiberGroup = new THREE.Group(); const fiberParticles = [];
+        for (let i = 0; i < 8; i++) { const p = sprite(redTex, 0.35, 0.8); p.userData = { clickable: true, label: 'fiber : 纤维路径', desc: 'Hopf纤维上的点', offset: (i/8)*Math.PI*2 }; fiberGroup.add(p); fiberParticles.push(p); inter.push(p); } g.add(fiberGroup);
+        g.userData = { base, baseGlow, loopPoint, greatRing, fiberParticles, sphereRadius: 3, interactive: inter }; return g;
+    }
+
+    function createTorus(){
+        const g=new THREE.Group(); g.name='torus'; const inter=[];
+        const torus=new THREE.Mesh(new THREE.TorusGeometry(3,1.2,48,100),new THREE.MeshStandardMaterial({color:0xcc8855,roughness:0.3,metalness:0.4}));
+        torus.castShadow=torus.receiveShadow=true; g.add(torus);
+        const base=new THREE.Mesh(new THREE.SphereGeometry(0.28,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.5}));
+        base.position.set(4.2,0,0); base.castShadow=true; base.userData={clickable:true,label:'base : T²',desc:'点构造器'}; g.add(base); inter.push(base);
+        const glow=sprite(goldTex,1.1,1); glow.position.copy(base.position); g.add(glow);
+        const merGroup=new THREE.Group(); const merP=[]; for(let i=0;i<4;i++){ const p=sprite(redTex,0.4,0.85); p.userData={clickable:true,label:'loop₁ : base = base',desc:'经线环路'}; merGroup.add(p); merP.push(p); inter.push(p); } g.add(merGroup);
+        const lonGroup=new THREE.Group(); const lonP=[]; for(let i=0;i<5;i++){ const p=sprite(blueTex,0.4,0.85); p.userData={clickable:true,label:'loop₂ : base = base',desc:'纬线环路'}; lonGroup.add(p); lonP.push(p); inter.push(p); } g.add(lonGroup);
+        g.userData={base,glow,merP,lonP,majorR:3,minorR:1.2,interactive:inter}; return g;
+    }
+    function createInterval(){
+        const g=new THREE.Group(); g.name='interval'; const inter=[];
+        const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(new THREE.Vector3(-3.5,0,0),new THREE.Vector3(3.5,0,0)),40,0.12,16,false),new THREE.MeshStandardMaterial({color:0x8899bb,roughness:0.2,metalness:0.6}));
+        tube.castShadow=tube.receiveShadow=true; g.add(tube);
+        const e0=new THREE.Mesh(new THREE.SphereGeometry(0.35,32,32),new THREE.MeshStandardMaterial({color:0xff5566,roughness:0.1,metalness:0.7,emissive:0xff3333,emissiveIntensity:1.2}));
+        e0.position.set(-3.5,0,0); e0.castShadow=true; e0.userData={clickable:true,label:'0 : I',desc:'左端点'}; g.add(e0); inter.push(e0);
+        const e1=new THREE.Mesh(new THREE.SphereGeometry(0.35,32,32),new THREE.MeshStandardMaterial({color:0x55aaff,roughness:0.1,metalness:0.7,emissive:0x3366ff,emissiveIntensity:1.2}));
+        e1.position.set(3.5,0,0); e1.castShadow=true; e1.userData={clickable:true,label:'1 : I',desc:'右端点'}; g.add(e1); inter.push(e1);
+        const seg=sprite(whiteTex,0.6,0.95); seg.userData={clickable:true,label:'seg : 0 = 1',desc:'路径构造器',progress:0,speed:0.4}; g.add(seg); inter.push(seg);
+        g.userData={e0,e1,seg,left:new THREE.Vector3(-3.5,0,0),right:new THREE.Vector3(3.5,0,0),interactive:inter}; return g;
+    }
+    function createSuspension(){
+        const g=new THREE.Group(); g.name='suspension'; const inter=[];
+        const topC=new THREE.Mesh(new THREE.ConeGeometry(2.8,3.2,48,1,true),new THREE.MeshStandardMaterial({color:0x9966cc,roughness:0.3,metalness:0.3,side:THREE.DoubleSide,transparent:true,opacity:0.7}));
+        topC.position.y=1.6; topC.castShadow=true; g.add(topC);
+        const botC=new THREE.Mesh(new THREE.ConeGeometry(2.8,3.2,48,1,true),new THREE.MeshStandardMaterial({color:0x6699cc,roughness:0.3,metalness:0.3,side:THREE.DoubleSide,transparent:true,opacity:0.7}));
+        botC.position.y=-1.6; botC.rotation.z=Math.PI; botC.castShadow=true; g.add(botC);
+        const north=new THREE.Mesh(new THREE.SphereGeometry(0.3,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.5}));
+        north.position.set(0,3.2,0); north.castShadow=true; north.userData={clickable:true,label:'N : ΣS⁰',desc:'北极点'}; g.add(north); inter.push(north);
+        const south=new THREE.Mesh(new THREE.SphereGeometry(0.3,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.5}));
+        south.position.set(0,-3.2,0); south.castShadow=true; south.userData={clickable:true,label:'S : ΣS⁰',desc:'南极点'}; g.add(south); inter.push(south);
+        const merGroup=new THREE.Group(); const merP=[]; for(let i=0;i<5;i++){ const p=sprite(whiteTex,0.38,0.8); p.userData={clickable:true,label:'merid : S⁰ → N = S',desc:'经线',phiOffset:(i/5)*Math.PI*2}; merGroup.add(p); merP.push(p); inter.push(p); } g.add(merGroup);
+        g.userData={north,south,merP,susR:2.8,halfH:3.2,interactive:inter}; return g;
+    }
+    function createPushout(){
+        const g=new THREE.Group(); g.name='pushout'; const inter=[];
+        const pA=new THREE.Mesh(new THREE.PlaneGeometry(2,1.8),new THREE.MeshStandardMaterial({color:0xcc6644,roughness:0.4,metalness:0.2,side:THREE.DoubleSide,transparent:true,opacity:0.8}));
+        pA.position.set(-1.2,0,0); pA.castShadow=true; g.add(pA);
+        const pB=new THREE.Mesh(new THREE.PlaneGeometry(2,1.8),new THREE.MeshStandardMaterial({color:0x4488cc,roughness:0.4,metalness:0.2,side:THREE.DoubleSide,transparent:true,opacity:0.8}));
+        pB.position.set(1.2,0,0); pB.castShadow=true; g.add(pB);
+        const edge=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.8,8),new THREE.MeshStandardMaterial({color:0x55ddaa,roughness:0.2,metalness:0.7}));
+        edge.position.set(0,0,0); edge.castShadow=true; g.add(edge);
+        const inl=new THREE.Mesh(new THREE.SphereGeometry(0.25,24,24),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.3}));
+        inl.position.set(-1.2,0.5,0); inl.castShadow=true; inl.userData={clickable:true,label:'inl : A → Pushout',desc:'左包含'}; g.add(inl); inter.push(inl);
+        const inr=new THREE.Mesh(new THREE.SphereGeometry(0.25,24,24),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.3}));
+        inr.position.set(1.2,-0.5,0); inr.castShadow=true; inr.userData={clickable:true,label:'inr : B → Pushout',desc:'右包含'}; g.add(inr); inter.push(inr);
+        const glue=sprite(whiteTex,0.55,0.9); glue.userData={clickable:true,label:'glue : inl∘f = inr∘g',desc:'粘合路径',progress:0}; g.add(glue); inter.push(glue);
+        g.userData={edgeLen:1.8,glue,interactive:inter}; return g;
+    }
+    function createTruncation(){
+        const g=new THREE.Group(); g.name='truncation'; const inter=[];
+        const center=new THREE.Mesh(new THREE.SphereGeometry(0.4,32,32),new THREE.MeshStandardMaterial({color:0xf0c040,roughness:0.1,metalness:0.8,emissive:0xff8800,emissiveIntensity:1.8}));
+        center.userData={clickable:true,label:'|a| : ||A||₀',desc:'集合截断后的元素'}; g.add(center); inter.push(center);
+        const glow=sprite(goldTex,1.5,1); glow.position.set(0,0,0); g.add(glow);
+        for(let i=0;i<4;i++){ const p=sprite(whiteTex,0.3,0.6); p.userData={clickable:true,label:'trunc : 高阶路径相等',desc:'集合截断路径'}; p.position.set(1.5-i*0.35,0,0); g.add(p); inter.push(p); }
+        g.userData={glow,interactive:inter}; return g;
+    }
+    function createQuotient(){
+        const g=new THREE.Group(); g.name='quotient'; const inter=[];
+        const pos=[[-2,0,0],[2,0,0],[0,1.5,0],[0,-1.5,0]];
+        pos.forEach((p,i)=>{ const s=new THREE.Mesh(new THREE.SphereGeometry(0.25,24,24),new THREE.MeshStandardMaterial({color:0xccaa88,roughness:0.2,metalness:0.6})); s.position.set(p[0],p[1],p[2]); s.castShadow=true; s.userData={clickable:true,label:`inc(a${i}) : A/R`,desc:'等价类代表'}; g.add(s); inter.push(s); });
+        const pairs=[[0,2],[1,3],[0,1]];
+        pairs.forEach(pair=>{ const p1=new THREE.Vector3(pos[pair[0]][0],pos[pair[0]][1],pos[pair[0]][2]); const p2=new THREE.Vector3(pos[pair[1]][0],pos[pair[1]][1],pos[pair[1]][2]); const part=sprite(redTex,0.4,0.85); part.position.lerpVectors(p1,p2,0.5); part.userData={clickable:true,label:'rel : inc(a)=inc(b)',desc:'关系路径',p1,p2,progress:Math.random()}; g.add(part); inter.push(part); });
+        g.userData={interactive:inter}; return g;
+    }
+    function createPropTrunc(){
+        const g=new THREE.Group(); g.name='proptrunc'; const inter=[];
+        const core=new THREE.Mesh(new THREE.SphereGeometry(0.5,32,32),new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.05,metalness:0.2,emissive:0xcc88ff,emissiveIntensity:2.5}));
+        core.userData={clickable:true,label:'|a| : ||A||',desc:'命题截断的见证'}; g.add(core); inter.push(core);
+        const glow=sprite(purpleTex,1.8,1); glow.position.set(0,0,0); g.add(glow);
+        for(let i=0;i<12;i++){ const a=(i/12)*Math.PI*2; const p=sprite(whiteTex,0.25,0.7); p.position.set(Math.cos(a)*1.2,Math.sin(a)*0.6,0); p.userData={clickable:true,label:'path : x = y',desc:'命题截断中任意两点相等'}; g.add(p); inter.push(p); }
+        g.userData={glow,interactive:inter}; return g;
+    }
+
+    function createAll(){
+        hitGroups['s1']=createS1(); hitGroups['s2']=createS2(); hitGroups['s3']=createS3(); hitGroups['torus']=createTorus();
+        hitGroups['interval']=createInterval(); hitGroups['suspension']=createSuspension();
+        hitGroups['pushout']=createPushout(); hitGroups['truncation']=createTruncation();
+        hitGroups['quotient']=createQuotient(); hitGroups['proptrunc']=createPropTrunc();
+        allNames.forEach(n=>{ const g=hitGroups[n]; g.scale.setScalar(trans[n].curr); g.visible=trans[n].vis; mainContainer.add(g); });
+    }
+    createAll();
+
+    const panelData = {
+        's1':{title:'S¹ · 圆',type:'1-维球面',constructors:[{label:'base : S¹',desc:'点构造器',cls:''},{label:'loop : base = base',desc:'路径构造器 (回路)',cls:'path-ctor'}]},
+        's2':{title:'S² · 球面',type:'2-维球面',constructors:[{label:'base : S²',desc:'点构造器',cls:''},{label:'loop (大圆)',desc:'球面回路',cls:'path-ctor'},{label:'surface : refl = refl',desc:'2-路径构造器',cls:'surface-ctor'}]},
+        's3':{title:'S³ · 三维球面',type:'3-维球面',constructors:[{label:'base : S³',desc:'点构造器',cls:''},{label:'loop : base = base',desc:'高维路径构造器',cls:'path-ctor'},{label:'fiber : 纤维结构',desc:'Hopf纤维示意',cls:'surface-ctor'}]},
+        'torus':{title:'T² · 环面',type:'S¹ × S¹',constructors:[{label:'base : T²',desc:'点构造器',cls:''},{label:'loop₁ : base = base',desc:'路径构造器',cls:'path-ctor'},{label:'loop₂ : base = base',desc:'路径构造器',cls:'path-ctor'},{label:'square',desc:'2-路径构造器',cls:'surface-ctor'}]},
+        'interval':{title:'I · 区间',type:'区间类型',constructors:[{label:'0 : I',desc:'左端点',cls:''},{label:'1 : I',desc:'右端点',cls:''},{label:'seg : 0 = 1',desc:'路径构造器',cls:'path-ctor'}]},
+        'suspension':{title:'ΣS⁰ · 悬挂',type:'S⁰的悬挂',constructors:[{label:'N : ΣS⁰',desc:'北极点',cls:''},{label:'S : ΣS⁰',desc:'南极点',cls:''},{label:'merid : S⁰ → N = S',desc:'路径族',cls:'path-ctor'}]},
+        'pushout':{title:'推出 · Pushout',type:'A ⊔_C B',constructors:[{label:'inl : A → Pushout',desc:'左包含',cls:''},{label:'inr : B → Pushout',desc:'右包含',cls:''},{label:'glue : inl∘f = inr∘g',desc:'粘合路径',cls:'path-ctor'}]},
+        'truncation':{title:'集合截断 · Set Truncation',type:'||A||₀',constructors:[{label:'|a| : ||A||₀',desc:'点构造器',cls:''},{label:'trunc : 所有高阶路径相等',desc:'截断路径 (集合级)',cls:'path-ctor'}]},
+        'quotient':{title:'集合商 · Quotient',type:'A / R',constructors:[{label:'inc : A → A/R',desc:'点构造器',cls:''},{label:'rel : inc(a)=inc(b)',desc:'关系路径',cls:'path-ctor'}]},
+        'proptrunc':{title:'命题截断 · Prop Trunc',type:'||A||',constructors:[{label:'|a| : ||A||',desc:'点构造器',cls:''},{label:'path : x = y',desc:'所有点都相等 (命题级)',cls:'path-ctor'}]}
+    };
+
+    function updatePanel(t){ const d=panelData[t]; if(!d)return; panelTitle.textContent=d.title; panelType.textContent=d.type; panelConstructors.innerHTML=d.constructors.map(c=>`<li class="${c.cls}"><span class="ctor-label">${c.label}</span><span class="ctor-desc">${c.desc}</span></li>`).join(''); }
+    function switchType(t){
+        if(currentType===t && trans[t].target===1)return;
+        if(currentType) trans[currentType].target=0;
+        currentType=t; trans[t].target=1; hitGroups[t].visible=true; trans[t].vis=true;
+        typeButtons.forEach(b=>b.classList.toggle('active',b.dataset.type===t));
+        updatePanel(t); selectedObject=null; clickLabel.style.display='none';
+    }
+    typeButtons.forEach(b=>b.addEventListener('click',()=>{const t=b.dataset.type; if(t)switchType(t);}));
+    window.addEventListener('keydown',e=>{ const k=['1','2','3','4','5','6','7','8','9','0']; const idx=k.indexOf(e.key); if(idx>=0&&idx<allNames.length)switchType(allNames[idx]); });
+
+    const raycaster = new THREE.Raycaster(); raycaster.params.Points.threshold=0.2; raycaster.params.Sprite.threshold=0.2;
+    const mouse = new THREE.Vector2(); let selectedObject=null;
+    function getInteractive(){ const g=hitGroups[currentType]; if(!g||!g.visible||g.scale.x<0.01)return[]; return g.userData.interactive||[]; }
+    function onClick(e){
+        const rect=renderer.domElement.getBoundingClientRect();
+        mouse.x=((e.clientX-rect.left)/rect.width)*2-1; mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+        raycaster.setFromCamera(mouse,camera); const objs=getInteractive();
+        if(!objs.length){selectedObject=null;clickLabel.style.display='none';return;}
+        const ints=raycaster.intersectObjects(objs,false);
+        if(ints.length>0){ const o=ints[0].object; if(o.userData?.clickable){ selectedObject=o; clickLabelName.textContent=o.userData.label||''; clickLabelDesc.textContent=o.userData.desc||''; clickLabel.style.display='block'; }else{selectedObject=null;clickLabel.style.display='none';} }
+        else{selectedObject=null;clickLabel.style.display='none';}
+    }
+    renderer.domElement.addEventListener('click',onClick);
+    renderer.domElement.addEventListener('touchend',e=>{
+        if(e.changedTouches.length===1){
+            const t=e.changedTouches[0]; const rect=renderer.domElement.getBoundingClientRect();
+            mouse.x=((t.clientX-rect.left)/rect.width)*2-1; mouse.y=-((t.clientY-rect.top)/rect.height)*2+1;
+            raycaster.setFromCamera(mouse,camera); const objs=getInteractive();
+            if(!objs.length){selectedObject=null;clickLabel.style.display='none';return;}
+            const ints=raycaster.intersectObjects(objs,false);
+            if(ints.length>0){ const o=ints[0].object; if(o.userData?.clickable){ selectedObject=o; clickLabelName.textContent=o.userData.label||''; clickLabelDesc.textContent=o.userData.desc||''; clickLabel.style.display='block'; }else{selectedObject=null;clickLabel.style.display='none';} }
+            else{selectedObject=null;clickLabel.style.display='none';}
+        }
+    });
+
+    function updateLabelPos(){
+        if(!selectedObject){if(clickLabel.style.display!=='none')clickLabel.style.display='none';return;}
+        const g=hitGroups[currentType]; if(!g||!g.visible||g.scale.x<0.01){selectedObject=null;clickLabel.style.display='none';return;}
+        const wp=new THREE.Vector3(); selectedObject.getWorldPosition(wp); const sp=wp.clone().project(camera);
+        const x=(sp.x*0.5+0.5)*window.innerWidth, y=(-sp.y*0.5+0.5)*window.innerHeight;
+        let left=x+15, top=y-25; if(left+180>window.innerWidth-10)left=x-195; if(top<10)top=10; if(top+50>window.innerHeight-10)top=window.innerHeight-60;
+        clickLabel.style.left=left+'px'; clickLabel.style.top=top+'px'; clickLabel.style.display='block';
+    }
+
+    const clock = new THREE.Clock();
+    function animate(){
+        requestAnimationFrame(animate);
+        const dt=Math.min(clock.getDelta(),0.1), time=performance.now()*0.001;
+        controls.update();
+        allNames.forEach(n=>{
+            const ts=trans[n], g=hitGroups[n]; if(!g)return;
+            const diff=ts.target-ts.curr;
+            if(Math.abs(diff)>0.001){ ts.curr+=diff*0.12; if(Math.abs(diff)<0.002)ts.curr=ts.target; g.scale.setScalar(ts.curr); }
+            if(ts.target===0&&ts.curr<0.015){ g.visible=false; ts.vis=false; ts.curr=0; g.scale.setScalar(0); }
+            else if(ts.target===1&&ts.curr>0.01){ g.visible=true; ts.vis=true; }
+        });
+        const gs=hitGroups;
+        if(gs.s1?.visible){ const d=gs.s1.userData; const R=d.circleRadius; d.mainLoop.position.set(R*Math.cos(time*0.7),R*Math.sin(time*0.7),0); d.loopParticles.forEach((p,i)=>{ const th=(time*0.55+(i/d.loopParticles.length)*Math.PI*2)%(Math.PI*2); p.position.set(R*Math.cos(th),R*Math.sin(th),0); }); d.glow.scale.setScalar(1.2*(1+0.25*Math.sin(time*2.5))); }
+        if(gs.s2?.visible){ const d=gs.s2.userData; const R=d.sphereRadius; d.greatCirclePoint.position.set(R*Math.cos(time*0.6),0,R*Math.sin(time*0.6)); d.surfParticles.forEach(p=>{ const u=p.userData; u.theta+=u.speed*dt; u.phi+=u.speed*0.6*dt*Math.sin(u.theta*3); u.theta%=Math.PI*2; u.phi=Math.max(0.15,Math.min(Math.PI-0.15,u.phi%Math.PI)); p.position.set(R*Math.sin(u.phi)*Math.cos(u.theta),R*Math.cos(u.phi),R*Math.sin(u.phi)*Math.sin(u.theta)); }); d.glow.scale.setScalar(1.1*(1+0.2*Math.sin(time*2))); }
+        if(gs.s3?.visible){ const d=gs.s3.userData; const R=d.sphereRadius; d.loopPoint.position.set(R*Math.cos(time*0.5),0,R*Math.sin(time*0.5)); d.fiberParticles.forEach((p,i)=>{ const off = p.userData.offset; const phi = (time*0.8 + off) % (Math.PI*2); const r = 2.4 + 0.4*Math.cos(phi*2); p.position.set(r*Math.cos(phi), 0.4*Math.sin(phi*2), r*Math.sin(phi)); }); d.baseGlow.scale.setScalar(1.3*(1+0.2*Math.sin(time*2))); }
+        if(gs.torus?.visible){ const d=gs.torus.userData; const R=d.majorR, r=d.minorR; d.merP.forEach((p,i)=>{ const phi=(time*0.7+(i/d.merP.length)*Math.PI*2)%(Math.PI*2); p.position.set((R+r*Math.cos(phi)),r*Math.sin(phi),0); }); d.lonP.forEach((p,i)=>{ const th=(time*0.5+(i/d.lonP.length)*Math.PI*2)%(Math.PI*2); p.position.set((R+r)*Math.cos(th),0,(R+r)*Math.sin(th)); }); d.glow.scale.setScalar(1.1*(1+0.2*Math.sin(time*2.2))); }
+        if(gs.interval?.visible){ const d=gs.interval.userData; d.seg.userData.progress=(d.seg.userData.progress+d.seg.userData.speed*dt)%1; const t=0.5-0.5*Math.cos(d.seg.userData.progress*Math.PI*2); d.seg.position.lerpVectors(d.left,d.right,t); }
+        if(gs.suspension?.visible){ const d=gs.suspension.userData; const R=d.susR,H=d.halfH; d.merP.forEach(p=>{ const u=p.userData; const raw=(time*0.4+u.phiOffset/(Math.PI*2))%1; const phi=raw*Math.PI; p.position.set(R*Math.sin(phi)*Math.cos(u.phiOffset),H*Math.cos(phi),R*Math.sin(phi)*Math.sin(u.phiOffset)); }); }
+        if(gs.pushout?.visible){ const d=gs.pushout.userData; d.glue.userData.progress=(d.glue.userData.progress+0.5*dt)%1; const t=0.5-0.5*Math.cos(d.glue.userData.progress*Math.PI*2); d.glue.position.set(0,(t-0.5)*d.edgeLen,0); }
+        if(gs.truncation?.visible){ gs.truncation.userData.glow.scale.setScalar(1.5+0.3*Math.sin(time*3)); }
+        if(gs.quotient?.visible){ const inter=gs.quotient.userData.interactive; if(inter) inter.forEach(o=>{ if(o.userData?.p1&&o.userData?.p2){ const d=o.userData; d.progress=(d.progress+0.3*dt)%1; const t=0.5-0.5*Math.cos(d.progress*Math.PI*2); o.position.lerpVectors(d.p1,d.p2,t); } }); }
+        if(gs.proptrunc?.visible){ gs.proptrunc.userData.glow.scale.setScalar(1.8+0.4*Math.sin(time*2.5)); }
+        stars.rotation.y+=dt*0.03; stars.rotation.x+=dt*0.012;
+        shadowPlane.position.y=-4.8;
+        updateLabelPos();
+        renderer.render(scene,camera);
+    }
+
+    window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
+    window.addEventListener('dblclick',e=>{
+        if(e.target.tagName==='CANVAS'){
+            const dp={pushout:{x:6,y:3,z:6},truncation:{x:0,y:2,z:7},quotient:{x:4,y:2,z:6},proptrunc:{x:0,y:1,z:7},s3:{x:6,y:2,z:8}}[currentType]||{x:7,y:3.5,z:8};
+            const sP=camera.position.clone(), eP=new THREE.Vector3(dp.x,dp.y,dp.z);
+            const sT=controls.target.clone(), eT=new THREE.Vector3(0,0,0);
+            const st=performance.now(), dur=800;
+            function anim(ts){ const el=ts-st, t=Math.min(el/dur,1), ease=t<0.5?2*t*t:-1+(4-2*t)*t; camera.position.lerpVectors(sP,eP,ease); controls.target.lerpVectors(sT,eT,ease); controls.update(); if(t<1)requestAnimationFrame(anim); }
+            requestAnimationFrame(anim);
+        }
+    });
+
+    updatePanel('s1');
+    animate();
+</script>
+</body>
+</html>
