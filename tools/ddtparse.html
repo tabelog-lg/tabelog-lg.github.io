@@ -4,7 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>进度文档解码/编码器</title>
-    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="tools.css">
+    <link rel="stylesheet" href="tools-form.css">
+    <style>
+        /* ===== 本页专属：文件上传区 + 尺寸微调 ===== */
+        .main-area { margin-bottom: 20px; }
+        .divider { margin: 22px 0 26px; }
+        .textarea-wrapper textarea { min-height: 240px; font-size: 13.5px; }
+        .textarea-wrapper textarea.output-area { min-height: 200px; }
+        /* 按钮较多，横向排布 */
+        .button-group { flex-direction: row; flex-wrap: wrap; min-width: 0; padding: 0; }
+        .button-group .btn { flex: 1 1 160px; padding: 13px 20px; }
+
+        /* 文件上传区（仅本页使用） */
+        .file-zone {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: stretch;
+            margin-bottom: 26px;
+        }
+        .file-upload-label {
+            flex: 1 1 260px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 24px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 2px dashed var(--primary-line);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .file-upload-label:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            border-style: solid;
+            box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+        }
+        .file-upload-label:active { transform: scale(0.98); }
+        .file-upload-label input[type="file"] { display: none; }
+
+        @media (max-width: 768px) {
+            .file-zone { flex-direction: column; }
+            .button-group .btn { flex: 1 1 100%; }
+        }
+    </style>
     <script src="ddtparse.js" defer></script>
 </head>
 <body class="page-ddtparse">

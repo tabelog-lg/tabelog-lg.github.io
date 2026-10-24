@@ -4,7 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文本替换工具</title>
-    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="tools.css">
+    <style>
+        /* ===== 本页专属：替换规则列表 ===== */
+        .replace-section { margin-top: 4px; }
+        .replace-section .section-header { margin-bottom: 16px; }
+
+        .list-labels {
+            display: flex;
+            gap: 12px;
+            padding: 0 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+        .list-labels span { flex: 1; text-align: center; }
+        .list-labels span:first-child { text-align: left; }
+        .list-labels span:last-child { width: 44px; flex: none; text-align: right; }
+
+        .replace-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .replace-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .replace-row .row-input {
+            flex: 1;
+            min-width: 0;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            background: #fafbfc;
+            color: var(--text);
+        }
+        .replace-row .row-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.08);
+            background: #fff;
+        }
+        .replace-row .row-input::placeholder { color: #b0b8c4; font-style: italic; }
+        .replace-row .row-input.find-input { border-left: 3px solid var(--primary); }
+        .replace-row .row-input.replace-input { border-left: 3px solid var(--success); }
+        .replace-row .row-arrow {
+            flex: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            opacity: 0.5;
+            user-select: none;
+            padding: 0 2px;
+        }
+
+        .btn-remove {
+            flex: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid #fecaca;
+            background: #fef2f2;
+            color: var(--danger);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-remove:hover {
+            background: var(--danger);
+            color: #fff;
+            border-color: var(--danger);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.25);
+        }
+        .btn-remove:active { transform: scale(0.9); }
+        .btn-remove:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            background: #f3f4f6;
+            border-color: var(--border);
+            color: #9ca3af;
+        }
+
+        .btn-add {
+            margin-top: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 2px dashed var(--primary-line);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+        }
+        .btn-add:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            border-style: solid;
+            box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+        }
+        .btn-add:active { transform: scale(0.98); }
+        .btn-add .plus-icon { font-size: 18px; font-weight: 700; line-height: 1; }
+
+        @media (max-width: 768px) {
+            .list-labels { gap: 8px; }
+            .replace-row { gap: 8px; flex-wrap: wrap; }
+            .replace-row .row-input { flex: 1 1 45%; min-width: 100px; }
+            .replace-row .row-arrow { display: none; }
+            .btn-remove { width: 34px; height: 34px; font-size: 16px; }
+        }
+        @media (max-width: 400px) {
+            .replace-row .row-input { flex: 1 1 100%; }
+            .replace-row { align-items: stretch; }
+            .btn-remove { width: 100%; height: 36px; border-radius: var(--radius-sm); }
+        }
+    </style>
     <script src="replace.js" defer></script>
 </head>
 <body class="page-replace">

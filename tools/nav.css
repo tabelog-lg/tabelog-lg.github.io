@@ -1,64 +1,62 @@
 /* ==========================================================================
-   导航页样式 nav.css
-   配合 shared.css 使用，不修改 shared.css 原有规则。
-   适用：/tool/index.html、/tool/original/index.html
+   nav.css · 导航类页面层（配合 base.css 使用）
+   --------------------------------------------------------------------------
+   适用：index.html（工具导航）、original/index.html（历史版本）、
+         deductrium/index.html（Deductrium 相关）
+   只放导航类页面共用的结构：区块容器、说明文字、面包屑、胶囊按钮链接。
+   各页特有的卡片（tool-card / version-item / link-card）已内联到对应 HTML。
    ========================================================================== */
 
-/* ---------- 工具卡片网格 ---------- */
-.tool-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 18px;
+/* ========================== 01 区块容器 ========================== */
+.version-section {
+    margin-bottom: 28px;
+}
+.version-section:last-child {
     margin-bottom: 8px;
 }
-
-.tool-card {
-    display: flex;
-    flex-direction: column;
-    padding: 22px 22px 18px;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: #fafbfc;
-    transition: all var(--transition);
-}
-.tool-card:hover {
-    border-color: var(--primary);
-    background: #fff;
-    box-shadow: 0 4px 20px rgba(74, 108, 247, 0.12);
-    transform: translateY(-2px);
+.version-section .section-header {
+    margin-bottom: 12px;
 }
 
-.tool-card .card-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-    line-height: 1;
-}
-
-.tool-card h3 {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-    letter-spacing: -0.2px;
-}
-
-.tool-card .card-desc {
-    font-size: 13px;
+/* ========================== 02 说明文字 ========================== */
+.about-text {
+    font-size: 13.5px;
+    line-height: 1.75;
     color: var(--text-secondary);
-    line-height: 1.65;
-    margin-bottom: 16px;
-    flex: 1;
+    padding: 4px 2px;
+}
+.about-text a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+.about-text a:hover {
+    text-decoration: underline;
 }
 
-.tool-card .card-actions {
+/* =========================== 03 面包屑 =========================== */
+.breadcrumb {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    align-items: center;
     flex-wrap: wrap;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border);
+}
+.breadcrumb a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+.breadcrumb .sep {
+    color: #cbd5e1;
 }
 
-/* ---------- 胶囊按钮链接 ---------- */
+/* ========================= 04 胶囊按钮链接 ========================= */
 .card-link {
     display: inline-flex;
     align-items: center;
@@ -89,169 +87,13 @@
 }
 .card-link.ghost:hover {
     color: var(--primary);
-    border-color: #c7d2fe;
-    background: #eef2ff;
+    border-color: var(--primary-line);
+    background: var(--primary-soft);
 }
 
-/* ---------- 历史版本区块 ---------- */
-.version-section {
-    margin-bottom: 28px;
-}
-.version-section:last-child {
-    margin-bottom: 8px;
-}
-
-.version-section .section-header {
-    margin-bottom: 12px;
-}
-.version-section .section-header h2 {
-    font-size: 15px;
-}
-
-.version-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.version-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: #fafbfc;
-    text-decoration: none;
-    color: var(--text);
-    font-size: 13.5px;
-    transition: all var(--transition);
-}
-.version-item:hover {
-    border-color: var(--primary);
-    background: #eef2ff;
-    color: var(--primary);
-}
-
-.version-item .ver-tag {
-    flex: none;
-    min-width: 62px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    background: var(--primary);
-    color: #fff;
-    font-size: 11.5px;
-    font-weight: 700;
-    text-align: center;
-    font-family: var(--font-mono);
-    letter-spacing: 0.3px;
-}
-.version-item .ver-file {
-    flex: none;
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    color: var(--text-secondary);
-    min-width: 200px;
-}
-.version-item:hover .ver-file {
-    color: var(--primary);
-}
-.version-item .ver-desc {
-    flex: 1;
-    min-width: 0;
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-.version-item:hover .ver-desc {
-    color: var(--primary);
-}
-.version-item .ver-arrow {
-    flex: none;
-    opacity: 0.4;
-    transition: all var(--transition);
-}
-.version-item:hover .ver-arrow {
-    opacity: 1;
-    transform: translateX(2px);
-}
-
-/* 当前最新版高亮 */
-.version-item.current {
-    border-color: var(--primary);
-    background: #eef2ff;
-}
-.version-item.current .ver-tag {
-    background: var(--success);
-}
-
-/* ---------- 关于 ---------- */
-.about-text {
-    font-size: 13.5px;
-    line-height: 1.75;
-    color: var(--text-secondary);
-    padding: 4px 2px;
-}
-.about-text a {
-    color: var(--primary);
-    font-weight: 600;
-    text-decoration: none;
-}
-.about-text a:hover {
-    text-decoration: underline;
-}
-.about-text code {
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    padding: 1px 6px;
-    background: #eef2ff;
-    border-radius: 4px;
-    color: var(--primary);
-}
-
-/* ---------- 面包屑 ---------- */
-.breadcrumb {
-    font-size: 12.5px;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-    display: flex;
-    gap: 6px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.breadcrumb a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 600;
-}
-.breadcrumb a:hover {
-    text-decoration: underline;
-}
-.breadcrumb .sep {
-    color: #cbd5e1;
-}
-
-/* ---------- 响应式 ---------- */
+/* ============================ 05 响应式 ============================ */
 @media (max-width: 768px) {
-    .tool-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-    .version-item {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    .version-item .ver-tag {
-        min-width: 0;
-    }
-    .version-item .ver-file {
-        flex: 1 1 100%;
-        order: 3;
-        min-width: 0;
-        padding-left: 2px;
-    }
-    .version-item .ver-desc {
-        flex: 1 1 100%;
-        order: 4;
-        padding-left: 2px;
+    .breadcrumb {
+        margin-bottom: 6px;
     }
 }

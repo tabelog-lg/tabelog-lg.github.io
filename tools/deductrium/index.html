@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deductrium 相关 · 小工具集合</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../nav.css">
+    <style>
+        /* ===== 本页专属：链接卡片 / 紧凑链接列表 ===== */
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .link-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            text-decoration: none;
+            color: var(--text);
+            transition: all var(--transition);
+        }
+        .link-card:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            box-shadow: 0 4px 16px rgba(74, 108, 247, 0.12);
+            transform: translateY(-2px);
+        }
+        .link-icon {
+            flex: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1;
+            border-radius: 10px;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-line);
+            transition: all var(--transition);
+        }
+        .link-card:hover .link-icon {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .link-icon > * { color: inherit; }
+
+        .link-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .link-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .link-card:hover .link-title { color: var(--primary); }
+        .link-desc {
+            font-size: 12px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .link-desc:empty { display: none; }
+        .link-arrow {
+            flex: none;
+            font-size: 16px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            transition: all var(--transition);
+        }
+        .link-card:hover .link-arrow {
+            opacity: 1;
+            color: var(--primary);
+            transform: translateX(3px);
+        }
+
+        /* 紧凑链接列表 */
+        .link-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 0;
+        }
+        .link-list.grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 5px;
+        }
+        .link-list li { display: flex; min-width: 0; }
+        .link-list li > a {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            color: var(--text);
+            font-size: 13.5px;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+        .link-list li > a:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(74, 108, 247, 0.1);
+        }
+        .link-list li > a::before {
+            content: "›";
+            flex: none;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+        .link-list li > a:hover::before {
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+        .link-list .link-text {
+            flex: 1;
+            min-width: 0;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .link-list .link-author {
+            flex: none;
+            font-size: 11.5px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .link-list li > a:hover .link-author {
+            color: var(--primary);
+            opacity: 0.85;
+        }
+
+        /* 子分组标题 */
+        .list-subtitle {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            margin: 18px 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .list-subtitle::before {
+            content: "";
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--primary);
+        }
+        .list-subtitle:first-child { margin-top: 0; }
+
+        /* 预留：空白占位区（当前页面未使用，可自行删除） */
+        .placeholder-box {
+            min-height: 96px;
+            padding: 14px 18px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+        }
+        .placeholder-box:empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .placeholder-box:empty::before {
+            content: "待补充";
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            letter-spacing: 1px;
+            color: #c3cad6;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .link-grid { grid-template-columns: 1fr; gap: 10px; }
+            .link-card { padding: 12px 14px; }
+            .link-icon { width: 36px; height: 36px; font-size: 18px; }
+            .link-list.grid { grid-template-columns: 1fr; }
+            .link-list li > a { padding: 10px 14px; }
+            .link-list .link-author { display: none; }
+        }
+    </style>
+</head>
+<body class="page-nav">
+    <div class="container">
+
+        <!-- 面包屑 -->
+        <!--
+        <div class="breadcrumb">
+            <a href="../index.html">← 返回工具导航</a>
+            <span class="sep">/</span>
+            <span>Deductrium 相关</span>
+        </div>
+        -->
+
+        <!-- 标题 -->
+        <div class="header">
+            <h1><span class="icon">🎲</span> Deductrium 相关</h1>
+        </div>
+
+        <!-- ============ 游戏简介 ============ -->
+        <section class="version-section" id="intro">
+            <div class="section-header">
+                <h2>📖 游戏简介</h2>
+            </div>
+            <div class="about-text">
+                Deductrium 是由 wxyhly 制作的一款形式系统推理结合双曲空间的解谜小游戏。
+            </div>
+        </section>
+
+        <!-- ============ 游戏本体 ============ -->
+        <section class="version-section" id="game">
+            <div class="section-header">
+                <h2>🎮 游戏本体</h2>
+            </div>
+            <div class="link-grid">
+
+                <a class="link-card" href="https://wxyhly.github.io/deductrium" target="_blank" rel="noopener">
+                    <span class="link-icon">🎲</span>
+                    <span class="link-body">
+                        <span class="link-title">Deductrium</span>
+                        <span class="link-desc">wxyhly.github.io/deductrium</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a class="link-card" href="https://wxyhly.github.io/deductrium/?creative" target="_blank" rel="noopener">
+                    <span class="link-icon">🧪</span>
+                    <span class="link-body">
+                        <span class="link-title">创造模式</span>
+                        <span class="link-desc">?creative</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ============ 2.0 版 ============ -->
+        <section class="version-section" id="game2">
+            <div class="section-header">
+                <h2>🚀 2.0 版</h2>
+            </div>
+            <div class="link-grid">
+
+                <a class="link-card" href="https://wxyhly.github.io/deductrium-2.0/" target="_blank" rel="noopener">
+                    <span class="link-icon">🚀</span>
+                    <span class="link-body">
+                        <span class="link-title">Deductrium-2.0</span>
+                        <span class="link-desc">wxyhly.github.io/deductrium-2.0</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a class="link-card" href="https://wxyhly.github.io/deductrium-2.0/?creative" target="_blank" rel="noopener">
+                    <span class="link-icon">🧪</span>
+                    <span class="link-body">
+                        <span class="link-title">创造模式</span>
+                        <span class="link-desc">?creative</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ============ 改版 ============ -->
+        <section class="version-section" id="mods">
+            <div class="section-header">
+                <h2>🛠 改版</h2>
+            </div>
+            <div class="link-grid">
+
+                <a class="link-card" href="https://github.com/Hydrogenated233/deductrium" target="_blank" rel="noopener">
+                    <span class="link-icon">🧬</span>
+                    <span class="link-body">
+                        <span class="link-title">Deductrium HoTT Optimization</span>
+                        <span class="link-desc">by 环三氧杂四氢</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a class="link-card" href="https://github.com/hzyhhzy/deductrium/tree/dual-map-full-nodes-cache-fix" target="_blank" rel="noopener">
+                    <span class="link-icon">🗺️</span>
+                    <span class="link-body">
+                        <span class="link-title">Deductrium dual full map nodes</span>
+                        <span class="link-desc">by Sigmoid</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a class="link-card" href="https://hzyhhzy.github.com/deductrium" target="_blank" rel="noopener">
+                    <span class="link-icon">🎮</span>
+                    <span class="link-body">
+                        <span class="link-title">全地图显示 · 游戏网址</span>
+                        <span class="link-desc">by Sigmoid</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a class="link-card" href="https://github.com/VeryrrDefine/deductrium-m" target="_blank" rel="noopener">
+                    <span class="link-icon">🔧</span>
+                    <span class="link-body">
+                        <span class="link-title">Deductrium-m</span>
+                        <span class="link-desc">by VeryrrDefine</span>
+                    </span>
+                    <span class="link-arrow">→</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ============ 相关资料 ============ -->
+        <section class="version-section" id="refs">
+            <div class="section-header">
+                <h2>📚 相关资料</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a href="https://wxyhly.github.io/archives/1stlogic/" target="_blank" rel="noopener">
+                        <span class="link-text">公理化集合论简介</span>
+                        <span class="link-author">wxyhly</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://wxyhly.github.io/archives/hottese/" target="_blank" rel="noopener">
+                        <span class="link-text">类型论与机器证明简介</span>
+                        <span class="link-author">wxyhly</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.cnblogs.com/tigerchen/p/20753281" target="_blank" rel="noopener">
+                        <span class="link-text">Deductrium 笔记</span>
+                        <span class="link-author">cyx001</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 证明助手下载（油猴脚本） ============ -->
+        <section class="version-section" id="download">
+            <div class="section-header">
+                <h2>⬇️ Deductrium 证明助手下载</h2>
+            </div>
+            <div class="link-grid">
+
+                <a class="link-card" href="Deductrium-tool.js" download>
+                    <span class="link-icon">🐒</span>
+                    <span class="link-body">
+                        <span class="link-title">证明助手油猴脚本</span>
+                        <span class="link-desc">Deductrium-tool.js · 点击下载</span>
+                    </span>
+                    <span class="link-arrow">⬇</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ============ 攻略 ============ -->
+        <section class="version-section" id="guide">
+            <div class="section-header">
+                <h2>📘 攻略</h2>
+            </div>
+            <ul class="link-list">
+                <li><a href="https://hedgedoc.envs.net/IU_LnfotQT2iZjdZId9YFw" target="_blank" rel="noopener"><span class="link-text">第一章 命题逻辑</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/L8W6ggVbSAOvS451Gs6PHw" target="_blank" rel="noopener"><span class="link-text">第二章 一阶逻辑</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/oFtjqCXESCirxALGiuvRbw" target="_blank" rel="noopener"><span class="link-text">第三章 皮亚诺算数（PA）</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/ljOpREp8Qi6hXUek3BvMSg" target="_blank" rel="noopener"><span class="link-text">第四章 ZFC（策梅洛-弗兰克尔集合论加选择公理）</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/zvcyamTRRwaRHnGHfEh2kQ" target="_blank" rel="noopener"><span class="link-text">第五章 数系</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/VlrYi5xMRxqt1FsZgqX_5A" target="_blank" rel="noopener"><span class="link-text">第六章 类型论 Σ 依赖和前后</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/swx1zhnqS1ShQBuEbePFNQ" target="_blank" rel="noopener"><span class="link-text">第七章 类型论 W 良基树前后</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/sCGKhuBrSzyRVRMCHG_X1g" target="_blank" rel="noopener"><span class="link-text">第八章 同伦类型论（第 1 部分）</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/H0kQsIfGQYSLwB-WUnLYxQ" target="_blank" rel="noopener"><span class="link-text">第八章 同伦类型论（第 2 部分）</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/h0sDOLJdRUy0TUkqEKNT3g" target="_blank" rel="noopener"><span class="link-text">附录</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/qMcJimEyTuCbkUWFjPBenA" target="_blank" rel="noopener"><span class="link-text">Fin 自等价数与阶乘</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/0Il3CvaLTxeTCQxeFok_EA" target="_blank" rel="noopener"><span class="link-text">当前版本 94/96 全可达成就从零复现路线（1）</span></a></li>
+                <li><a href="https://hedgedoc.envs.net/2YQBSFnuQ0Say34M0YntwQ" target="_blank" rel="noopener"><span class="link-text">当前版本 94/96 全可达成就从零复现路线（2）</span></a></li>
+            </ul>
+
+            <h3 class="list-subtitle">其他不完整的攻略</h3>
+
+            <ul class="link-list">
+                <li>
+                    <a href="https://tieba.baidu.com/p/10572875285" target="_blank" rel="noopener">
+                        <span class="link-text">Deductrium 攻略 - 百度贴吧</span>
+                        <span class="link-author">USF</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://0i00000000a7.github.io/deductrium-guide/" target="_blank" rel="noopener">
+                        <span class="link-text">Deductrium 攻略</span>
+                        <span class="link-author">0i00000000a7</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">iqwMeowCat 版</h3>
+            <ul class="link-list">
+                <li><a href="https://zhuanlan.zhihu.com/p/2090045670593926986" target="_blank" rel="noopener"><span class="link-text">Deductrium 攻略（未完结）</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2090065672004965238" target="_blank" rel="noopener"><span class="link-text">命题逻辑 / 初识 ddtm，获得录制宏</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2090181655281645071" target="_blank" rel="noopener"><span class="link-text">命题逻辑 / 双重否定和否定爆炸</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2090406341709935885" target="_blank" rel="noopener"><span class="link-text">命题逻辑 / 大礼包</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2093331297536156850" target="_blank" rel="noopener"><span class="link-text">一阶逻辑 / 量词和自由出现</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2091521594162206458" target="_blank" rel="noopener"><span class="link-text">一阶逻辑 / 存在和任意</span></a></li>
+                <li><a href="https://zhuanlan.zhihu.com/p/2094049979405026552" target="_blank" rel="noopener"><span class="link-text">一阶逻辑 / 大礼包</span></a></li>
+                <li><a href="http://zhuanlan.zhihu.com/p/2094774985814438915" target="_blank" rel="noopener"><span class="link-text">皮亚诺算数 / 加法和乘法</span></a></li>
+            </ul>
+            
+        </section>
+
+        <!-- ============ 相关视频 ============ -->
+        <section class="version-section" id="video">
+            <div class="section-header">
+                <h2>🎬 相关视频</h2>
+            </div>
+
+            <h3 class="list-subtitle">速通 / 直播</h3>
+            <ul class="link-list">
+                <li>
+                    <a href="https://www.bilibili.com/video/BV1Z6Hj6vEDr" target="_blank" rel="noopener">
+                        <span class="link-text">命题逻辑和一阶逻辑速通（30 min）</span>
+                        <span class="link-author">普_通_的_5_级_用_户</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.bilibili.com/video/BV1mBEB6iE9s" target="_blank" rel="noopener">
+                        <span class="link-text">形式系统推理游戏 Deductrium 直播回放（更新至 2026-06-25）</span>
+                        <span class="link-author">蓝天白云 XYZ</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">I 析境 l</h3>
+            <ul class="link-list grid">
+                <li><a href="https://www.bilibili.com/video/BV1Aq7x6REVj" target="_blank" rel="noopener"><span class="link-text">Deductrium（1）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1Fk7x6HELf" target="_blank" rel="noopener"><span class="link-text">Deductrium（2）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV15V7x63EjN" target="_blank" rel="noopener"><span class="link-text">Deductrium（3）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1jBTg6kEwo" target="_blank" rel="noopener"><span class="link-text">Deductrium（4）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1jqTg6VEUj" target="_blank" rel="noopener"><span class="link-text">Deductrium（5）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1tVTg6fEWW" target="_blank" rel="noopener"><span class="link-text">Deductrium（6）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV19HTu6eEYc" target="_blank" rel="noopener"><span class="link-text">Deductrium（7）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV19HTu6eEAw" target="_blank" rel="noopener"><span class="link-text">Deductrium（8）——怎么突然 bug 了</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1xmKX6kE6m" target="_blank" rel="noopener"><span class="link-text">Deductrium（9）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1CXKX6uEYf" target="_blank" rel="noopener"><span class="link-text">Deductrium（10）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1XuTv6BEW1" target="_blank" rel="noopener"><span class="link-text">Deductrium（11）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1w9Ti6tEDC" target="_blank" rel="noopener"><span class="link-text">Deductrium（12）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1RuTq6jE7h" target="_blank" rel="noopener"><span class="link-text">Deductrium（13）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1dTTq6mEiT" target="_blank" rel="noopener"><span class="link-text">Deductrium（14）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1MnTx6gEo7" target="_blank" rel="noopener"><span class="link-text">Deductrium（15）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1VGTx61EKf" target="_blank" rel="noopener"><span class="link-text">Deductrium（16）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1GGTx61EYM" target="_blank" rel="noopener"><span class="link-text">Deductrium（17）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV1aGTx61EQL" target="_blank" rel="noopener"><span class="link-text">Deductrium（18）</span></a></li>
+                <li><a href="https://www.bilibili.com/video/BV199MF61Ej5" target="_blank" rel="noopener"><span class="link-text">Deductrium 修正不可做题目</span></a></li>
+            </ul>
+        </section>
+
+        <div class="footer">
+            返回 <a href="../index.html">工具导航</a>
+        </div>
+    </div>
+</body>
+</html>

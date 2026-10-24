@@ -4,8 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小工具集合 · 导航</title>
-    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="base.css">
     <link rel="stylesheet" href="nav.css">
+    <style>
+        /* ===== 本页专属：工具卡片网格 ===== */
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+            margin-bottom: 8px;
+        }
+        .tool-card {
+            display: flex;
+            flex-direction: column;
+            padding: 22px 22px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            transition: all var(--transition);
+        }
+        .tool-card:hover {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(74, 108, 247, 0.12);
+            transform: translateY(-2px);
+        }
+        .tool-card .card-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        .tool-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -0.2px;
+        }
+        .tool-card .card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 16px;
+            flex: 1;
+        }
+        .tool-card .card-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 12px;
+            border-top: 1px dashed var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .tool-grid { grid-template-columns: 1fr; gap: 14px; }
+        }
+    </style>
 </head>
 <body class="page-nav">
     <div class="container">
@@ -26,7 +80,7 @@
                     解码游戏进度文档为可读文本，支持修改后重新编码；可提取证明项、类型层证明项与排列表。
                 </p>
                 <div class="card-actions">
-                    <a class="card-link primary" href="ddtparse-v4.2.html">打开 v4.2 →</a>
+                    <a class="card-link primary" href="ddtparse.html">打开 v4.3 →</a>
                     <a class="card-link ghost" href="original/index.html#ddtparse">历史版本</a>
                 </div>
             </div>
@@ -80,12 +134,13 @@
         </div>
         <p class="about-text">
             本站是一组纯前端小工具的集合。所有处理均在浏览器本地完成，不上传任何数据。
-            所有页面共用一份 <code>shared.css</code> 统一视觉风格，也可单独打开使用。
+            各页共用 <code>base.css</code> 打底，导航类页面叠加 <code>nav.css</code>，工具页叠加
+            <code>tools.css</code>（选项区另加 <code>tools-form.css</code>），每页只引自己用到的部分。
             早期迭代版本归档在 <a href="original/index.html">/tool/original</a> 中，仅供回顾与对照。
         </p>
 
         <div class="footer">
-            小工具集合 · 基于 <code>shared.css</code> 统一视觉
+            小工具集合 · 基于 <code>base.css</code> 统一视觉
         </div>
     </div>
 </body>

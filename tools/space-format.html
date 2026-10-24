@@ -4,7 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中西文间距自动格式化</title>
-    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="tools.css">
+    <style>
+        /* ===== 本页专属：配色图例 ===== */
+        .legend {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: #fafbfc;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-family: var(--font-mono);
+        }
+        .legend-item .swatch {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .swatch.han { background: #f59e0b; }
+        .swatch.west { background: var(--primary); }
+        .swatch.punct { background: #9ca3af; }
+        .swatch.protect { background: #a855f7; }
+    </style>
     <script src="space.js" defer></script>
 </head>
 <body class="page-space">
