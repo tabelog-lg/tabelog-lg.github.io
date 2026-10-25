@@ -1,0 +1,29 @@
+.tooltip{
+   display: inline-block;
+   position: absolute;
+   z-index: 1073741824;
+   bottom: 100%;
+   padding: 2px 5px;
+   background-color: #dfd;
+   text-align: left;
+}
+.shown-item{
+   position: relative;
+}
+.shown-item:hover{
+   background-color: #cff;
+}
+.tab>button{
+   padding: 0 6px 2px;
+   border: 2px solid #90f;
+   border-radius: 10px;
+   background-color: #daf;
+   font-size: 20px;
+}
+.tab>button[disabled]{
+   background-color: #60a;
+   color: #fff;
+}
+.nowrap{
+   white-space: nowrap;
+}
