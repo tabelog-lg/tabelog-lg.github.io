@@ -153,6 +153,14 @@
     color: var(--text-secondary);
 }
 
+/* D2 编码时 mode 不一致的告警信息 */
+.info-message.warn {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    border-left-color: #ef6c00;
+    color: #e65100;
+}
+
     </style>
     <script src="ddtparse.js" defer></script>
 </head>
@@ -165,6 +173,16 @@
                 <span class="icon">🔧</span> 进度文档解码 / 编码器
             </h1>
             <p>上传游戏进度文件，解码为可读文本 · 修改后重新编码并下载</p>
+        </div>
+
+        <!-- 游戏版本 -->
+        <div class="option-row">
+            <span class="option-label">游戏版本</span>
+            <select id="versionSelect">
+                <option value="ddt1" selected>Deductrium</option>
+                <option value="ddt2">Deductrium 2.0</option>
+            </select>
+            <span class="hint">💡 Deductrium 2.0 使用 LZString + JSON 进度格式</span>
         </div>
 
         <!-- 游戏模式 -->
@@ -196,13 +214,18 @@
             </div>
         </div>
 
+        <div class="option-row">
+            <span class="option-label"></span>
+            <span class="hint">⚠ 选择 Deductrium 2.0 后，提取证明项 / 类型层证明项 / 展示排列表 / 规则搜索 均不适用</span>
+        </div>
+
         <hr class="divider">
 
         <!-- 文件操作区 -->
         <div class="file-zone">
             <label class="file-upload-label">
                 📂 上传进度文档文件
-                <input type="file" id="fileInput" accept=".txt,.json,.dat,text/plain,application/json">
+                <input type="file" id="fileInput" accept=".txt,.json,.dat,.dt,text/plain,application/json,application/octet-stream">
             </label>
             <button id="btnDownload" class="btn btn-success" disabled>⬇️ 下载编码结果</button>
         </div>
@@ -262,17 +285,18 @@
 项目：进度文档解码 / 编码器（ddtparse）
 
 版本历史：
-- v1：ddtparse.html：存档编码-解码功能
-- v2：ddtparse_new.html：加入证明项提取功能
+- v1: ddtparse.html：存档编码-解码功能
+- v2: ddtparse_new.html：加入证明项提取功能
 - v2.1: 修复带有临时变量的证明项不会被提取的问题
 - v2.2: 修复假设中的有序对被错误切分的问题
-- v3：ddtparse_completely.html：加入类型层证明项提取与排列表显示
-- v3.1：ddtparse_completely_fixed.html：增加谓词、函数、常量定义的证明项提取显示；重制并优化页面风格
-- v4：加入选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则
+- v3: ddtparse_completely.html：加入类型层证明项提取与排列表显示
+- v3.1: ddtparse_completely_fixed.html：增加谓词、函数、常量定义的证明项提取显示；重制并优化页面风格
+- v4: 加入选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则
 - v4.1: 修复 mcmt 中的 # 会被识别为依赖推理规则的问题
 - v4.2: 修复名称映射表、修改依赖推理规则提取
 - v4.3: 重制页面 css
 - v5: 增加搜索推理规则并递归搜索依赖推理规则
+- v6: 增加对 Deductrium 2 的支持
 -->
 
 </html>

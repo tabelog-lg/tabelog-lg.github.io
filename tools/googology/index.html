@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Googology 导引 · 小工具集合</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../nav.css">
+    <style>
+        /* ===== 本页专属：紧凑链接列表 ===== */
+        .link-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 0;
+        }
+        .link-list.grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 5px;
+        }
+        .link-list li { display: flex; min-width: 0; }
+        .link-list li > a {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            color: var(--text);
+            font-size: 13.5px;
+            text-decoration: none;
+            transition: all var(--transition);
+        }
+        .link-list li > a:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(74, 108, 247, 0.1);
+        }
+        .link-list li > a::before {
+            content: "›";
+            flex: none;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+        .link-list li > a:hover::before {
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+        .link-list .link-text {
+            flex: 1;
+            min-width: 0;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .link-list .link-author {
+            flex: none;
+            font-size: 11.5px;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .link-list li > a:hover .link-author {
+            color: var(--primary);
+            opacity: 0.85;
+        }
+
+        /* 推荐项（对应底稿中的加粗） */
+        .link-list li > a.star {
+            font-weight: 700;
+            background: var(--primary-soft);
+            border-color: var(--primary-line);
+        }
+        .link-list li > a.star::before { color: var(--primary); }
+
+        /* 已关闭的站点 */
+        .link-list li > a.is-closed { opacity: 0.55; }
+        .link-list li > a.is-closed .link-text { text-decoration: line-through; }
+
+        /* 子分组标题 */
+        .list-subtitle {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            margin: 18px 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .list-subtitle::before {
+            content: "";
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: var(--primary);
+        }
+        .list-subtitle:first-child { margin-top: 0; }
+
+        /* 空白占位区 */
+        .placeholder-box {
+            min-height: 96px;
+            padding: 14px 18px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+        }
+        .placeholder-box:empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .placeholder-box:empty::before {
+            content: "待补充";
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            letter-spacing: 1px;
+            color: #c3cad6;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .link-list.grid { grid-template-columns: 1fr; }
+            .link-list li > a { padding: 10px 14px; }
+            .link-list .link-author { display: none; }
+        }
+    </style>
+</head>
+<body class="page-nav">
+    <div class="container">
+
+        <!-- 面包屑 -->
+        <div class="breadcrumb">
+            <a href="../index.html">← 返回工具导航</a>
+            <span class="sep">/</span>
+            <span>Googology 导引</span>
+        </div>
+
+        <!-- 标题 -->
+        <div class="header">
+            <h1><span class="icon">♾️</span> Googology 导引</h1>
+            <p>大数数学 · 记号 · 展开器 · 资料与社群</p>
+            <p class="hint">加粗代表推荐，不定期更新</p>
+        </div>
+
+        <!-- ============ Wiki 类 ============ -->
+        <section class="version-section" id="wiki">
+            <div class="section-header">
+                <h2>📚 Wiki 类</h2>
+            </div>
+
+            <h3 class="list-subtitle">Fandom</h3>
+            <ul class="link-list">
+                <li>
+                    <a class="star" href="https://googology.fandom.com/wiki/Googology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Googology Wiki · 目前互联网上最主要的 Googology 维基</span>
+                        <span class="link-author">25,184 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://fanmade-googology.fandom.com/wiki/Fan-made_Googology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Fan-made Googology</span>
+                        <span class="link-author">618 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://grangology.fandom.com/wiki/Grangology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Grangology Wiki</span>
+                        <span class="link-author">514 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://googology-testing.fandom.com/wiki/Googology_Testing_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Googology Testing Wiki</span>
+                        <span class="link-author">289 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://ordinal-markup.fandom.com/wiki/Ordinal_Markup" target="_blank" rel="noopener">
+                        <span class="link-text">The Ordinal Markup Wiki</span>
+                        <span class="link-author">44 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://googology-and-apeirology-playground.fandom.com/wiki/Googology_and_Apeirology_Playground_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Googology and Apeirology Playground Wiki</span>
+                        <span class="link-author">16 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://largenumber.fandom.com/zh/wiki/大数联邦_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">大数联邦 Wiki</span>
+                        <span class="link-author">50 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="is-closed" href="https://2023largenumber.fandom.com/zh/wiki/首页" target="_blank" rel="noopener">
+                        <span class="link-text">现代（2023-2024+）中文大数 Wiki</span>
+                        <span class="link-author">已关闭</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="is-closed" href="https://cgoogologyn.fandom.com/zh/wiki/大数学_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">大数学 Wiki</span>
+                        <span class="link-author">已关闭</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">Miraheze</h3>
+            <ul class="link-list">
+                <li>
+                    <a href="https://googology.miraheze.org/wiki/Main_Page" target="_blank" rel="noopener">
+                        <span class="link-text">Googology Wiki</span>
+                        <span class="link-author">620 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://googologyzh.miraheze.org/wiki/首页" target="_blank" rel="noopener">
+                        <span class="link-text">Googology 中文 Wiki</span>
+                        <span class="link-author">8 页</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">其他</h3>
+            <ul class="link-list">
+                <li>
+                    <a class="star" href="https://wiki.googology.top/index.php/首页" target="_blank" rel="noopener">
+                        <span class="link-text">Googology Wiki · 最成功、全球知识总量最大的 Googology Wiki</span>
+                        <span class="link-author">575 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://stepstowardinfinity.wordpress.com/" target="_blank" rel="noopener">
+                        <span class="link-text">Steps Toward Infinity!</span>
+                        <span class="link-author">Hyp cos · 43 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://apeirology.com/wiki/Main_Page" target="_blank" rel="noopener">
+                        <span class="link-text">Apeirology Wiki</span>
+                        <span class="link-author">93 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://neugierde.github.io/cantors-attic/" target="_blank" rel="noopener">
+                        <span class="link-text">Cantor's Attic · 康托尔的阁楼，也涉及大基数等内容</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://wiki.bbchallenge.org/wiki/Main_Page" target="_blank" rel="noopener">
+                        <span class="link-text">Wiki · bbchallenge（Busy Beaver 计算挑战）</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://bbchallenge.org/" target="_blank" rel="noopener">
+                        <span class="link-text">The Busy Beaver Challenge · 主页</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 资料类 ============ -->
+        <section class="version-section" id="materials">
+            <div class="section-header">
+                <h2>📖 资料类</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a class="star" href="https://github.com/ZhiqiuCao/Googology" target="_blank" rel="noopener">
+                        <span class="link-text">《大数理论》</span>
+                        <span class="link-author">曹知秋</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.docin.com/p-2128722751.html" target="_blank" rel="noopener">
+                        <span class="link-text">《大数入门》</span>
+                        <span class="link-author">Hyp cos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://gyafun.jp/ln/" target="_blank" rel="noopener">
+                        <span class="link-text">《巨大数論》</span>
+                        <span class="link-author">Fish</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.mrob.com/pub/math/largenum.html" target="_blank" rel="noopener">
+                        <span class="link-text">Large Numbers</span>
+                        <span class="link-author">Robert Munafo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://mrob.com/pub/math/numbers.html" target="_blank" rel="noopener">
+                        <span class="link-text">Notable Properties of Specific Numbers</span>
+                        <span class="link-author">Robert Munafo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.scottaaronson.com/writings/bignumbers.html" target="_blank" rel="noopener">
+                        <span class="link-text">Who Can Name the Bigger Number?</span>
+                        <span class="link-author">Scott Aaronson</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://nirvanasupermind.github.io/googology/tlnl/" target="_blank" rel="noopener">
+                        <span class="link-text">The Longest Number List</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://matrix67.com/blog/archives/3857" target="_blank" rel="noopener">
+                        <span class="link-text">比乘法更大的是乘方，比乘方更大的是什么？</span>
+                        <span class="link-author">Matrix67</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="http://www.madore.org/~david/misc/VIRUS/ordinals/ordinals.html" target="_blank" rel="noopener">
+                        <span class="link-text">Des nombres peu ordinaires（不同寻常的数）· 有中译版</span>
+                        <span class="link-author">madore</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://wxyhly.github.io/archives/ggg-ord/" target="_blank" rel="noopener">
+                        <span class="link-text">大数数学简介</span>
+                        <span class="link-author">Hqak</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/hemisemidemipresent/book" target="_blank" rel="noopener">
+                        <span class="link-text">book</span>
+                        <span class="link-author">hemisemidemipresent</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/hzyhhzy/column-ordinal-notations-hzy" target="_blank" rel="noopener">
+                        <span class="link-text">column-ordinal-notations-hzy · 大量 GPT 制作的记号相关内容</span>
+                        <span class="link-author">Sigmoid</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/SmliceGreen/gggDouluo" target="_blank" rel="noopener">
+                        <span class="link-text">ggg 斗罗同人文</span>
+                        <span class="link-author">高半仙0257</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 展开器类 ============ -->
+        <section class="version-section" id="expanders">
+            <div class="section-header">
+                <h2>🔧 展开器类</h2>
+                <span class="hint">最常用的一类工具</span>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a class="star" href="https://hypcos.github.io/notation-explorer/" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer · 最经典的展开器网站之一</span>
+                        <span class="link-author">Hyp cos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://projectcf.github.io/htmzls-notation-explorer" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer · 保存了被 ne 删除的记号</span>
+                        <span class="link-author">ProjectCF</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="star" href="https://smilelee-lyx.github.io/ne-rewritten/" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer rewritten · 页内分析 / 导入导出 / lnz-1 / 图示绘制</span>
+                        <span class="link-author">笑姐姐</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://gomen520.github.io/" target="_blank" rel="noopener">
+                        <span class="link-text">X-Y Sequence · 另有 ε-Y Sequence 与 G-Y Sequence</span>
+                        <span class="link-author">Go men</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://kawakaze-lin.github.io/MN_Mountain/" target="_blank" rel="noopener">
+                        <span class="link-text">MN Mountain · MN 山脉绘制</span>
+                        <span class="link-author">川风</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://dstty.github.io/notationexplorerCLI/" target="_blank" rel="noopener">
+                        <span class="link-text">记号展开器（CLI 风格）· 另有序数探索器</span>
+                        <span class="link-author">dstty</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://zhenghanxiang.github.io/FSequence/" target="_blank" rel="noopener">
+                        <span class="link-text">FSequence · 老版的 fffz 展开器</span>
+                        <span class="link-author">湘子</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://0y.googology.top/" target="_blank" rel="noopener">
+                        <span class="link-text">0-Y 展开器 · 带山脉图与项颜色标记</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naa.googology.top/" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Analyze Assistant</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://expander.googology.top/" target="_blank" rel="noopener">
+                        <span class="link-text">LPrSS Explorer</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://lllllllllwith10ls.github.io/san-solver/" target="_blank" rel="noopener">
+                        <span class="link-text">san-solver · SAN 展开器</span>
+                        <span class="link-author">ARsygo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://dshamlin98.github.io/SAN%20solver%202.html" target="_blank" rel="noopener">
+                        <span class="link-text">SAN solver · 修复了上一版的一些问题</span>
+                        <span class="link-author">dhsamlin98</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://rgetar.github.io/" target="_blank" rel="noopener">
+                        <span class="link-text">Ordinal Explorer · cOCF 展开器，支持写成 φ 和 BOCF</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://fiveyeargaokao.github.io/Sequence%20Expander/index.html" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Expander · 比较全面的记号展开器（可能有 bug）</span>
+                        <span class="link-author">五年高考</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://waffle3z.github.io/notations/" target="_blank" rel="noopener">
+                        <span class="link-text">Ordinal explorer · BMS / 1-Y / HPrSS / LPrSS / LDMS / LBMS / DDMS 等</span>
+                        <span class="link-author">waffle3z</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://fghdisplayer.onrender.com/" target="_blank" rel="noopener">
+                        <span class="link-text">FGH Displayer · LVO 内 φ 函数和 FGH 的基本列与展开</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://cream-cn.github.io/notation-explorer-ccn/" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer</span>
+                        <span class="link-author">Cream</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://davinci103.github.io/GMS/" target="_blank" rel="noopener">
+                        <span class="link-text">Gap Matrix System · GMS 的介绍和展开器</span>
+                        <span class="link-author">DaVinci103</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://gyafun.jp/ln/basmat.cgi" target="_blank" rel="noopener">
+                        <span class="link-text">Bashicu Matrix Calculator · BM3.3 / BM2 等</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://davidexmachina.github.io/garden-of-ordinals/" target="_blank" rel="noopener">
+                        <span class="link-text">Garden of Ordinals · 序数花园，BOCF / ROCF 等</span>
+                        <span class="link-author">David Exmachina</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/BMSHydraViewer/" target="_blank" rel="noopener">
+                        <span class="link-text">BMS Hydra Viewer · BMS 父项关系绘制</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/googology/0-Y/implementation.html" target="_blank" rel="noopener">
+                        <span class="link-text">0-Y Sequence Implementation</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/whYmountain/" target="_blank" rel="noopener">
+                        <span class="link-text">whYmountain · 1-Y 山脉图绘制</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="star" href="https://naruyoko.github.io/YNySequence/" target="_blank" rel="noopener">
+                        <span class="link-text">YNySequence · 1-Y 展开器</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="star" href="https://naruyoko.github.io/MEGAwhYmountain/" target="_blank" rel="noopener">
+                        <span class="link-text">MEGAwhYmountain · ω-Y 山脉图绘制</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/StudyAndExpandSequence/" target="_blank" rel="noopener">
+                        <span class="link-text">Study and Expand Sequence（仮）· ω-Y 展开器，可能有误</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://hydrogenated233.github.io/notation-explorer" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer</span>
+                        <span class="link-author">环三氧杂四氢</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sudden-analyse.github.io/html/Visualizer/SSS_Expander.html" target="_blank" rel="noopener">
+                        <span class="link-text">SSS Expand Visualizer - Enhanced</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://mrredsharkfan.github.io/notation-explorer-analysis-mode/" target="_blank" rel="noopener">
+                        <span class="link-text">Notation Explorer+</span>
+                        <span class="link-author">mrredsharkfan</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 转换器类 ============ -->
+        <section class="version-section" id="converters">
+            <div class="section-header">
+                <h2>🔁 转换器类</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a href="https://solarzone1010.github.io/bms-analyzer.html" target="_blank" rel="noopener">
+                        <span class="link-text">BMS analyzer · 把 EBO 之前的 BMS 翻译成 BOCF</span>
+                        <span class="link-author">solarzone</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="star" href="https://solarzone1010.github.io/bms-analyzer-2.html" target="_blank" rel="noopener">
+                        <span class="link-text">BMS analyzer Mk. II · 把 SSO 之前的 BMS 翻译成 OCF</span>
+                        <span class="link-author">solarzone</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/googology/BMS-vs-0Y/convert.html" target="_blank" rel="noopener">
+                        <span class="link-text">BMS vs. 0-Y Converter</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/DimensionalYSequenceSource/" target="_blank" rel="noopener">
+                        <span class="link-text">Dimensional Y-Sequence Source · DBMS → 1-Y</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/sprss-vs-veblen/" target="_blank" rel="noopener">
+                        <span class="link-text">SPrSS ↔ Veblen 转换器</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/googology/EBOCF-vs-EWBOCF/ebocf2ewbocf.html" target="_blank" rel="noopener">
+                        <span class="link-text">Embedding EBOCF → EWBOCF · BOCF 与弱 BOCF 互转</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="star" href="https://0i00000000a7.github.io/analyzer/" target="_blank" rel="noopener">
+                        <span class="link-text">Analyzer · 一系列基本记号的展开器和互译</span>
+                        <span class="link-author">0i00000000a7</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 序数地图类 ============ -->
+        <section class="version-section" id="ordmap">
+            <div class="section-header">
+                <h2>🗺 序数地图类</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a href="http://www.madore.org/~david/math/drawordinals.html" target="_blank" rel="noopener">
+                        <span class="link-text">Draw Ordinals · 序数的可视化，最大 ε_ε₀</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://wxyhly.github.io/ordmap/" target="_blank" rel="noopener">
+                        <span class="link-text">OrdMap · 最大 EBO，另有 0-Y 级别视图</span>
+                        <span class="link-author">wxyhly</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://hzyhhzy.github.io/googology/index.html" target="_blank" rel="noopener">
+                        <span class="link-text">大数阶梯 — Googology Scale · 类序数尺形式的序数阶梯</span>
+                        <span class="link-author">Sigmoid</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 其他 Googology 中心 ============ -->
+        <section class="version-section" id="centers">
+            <div class="section-header">
+                <h2>🌐 其他 Googology 中心</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a class="star" href="https://googology.top/" target="_blank" rel="noopener">
+                        <span class="link-text">GOOGOLOGY_NEXUS</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://aarextiaokhiao.github.io/googology.html" target="_blank" rel="noopener">
+                        <span class="link-text">Aarex's Googology</span>
+                        <span class="link-author">Aarex</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://naruyoko.github.io/googology/" target="_blank" rel="noopener">
+                        <span class="link-text">Googology Related Stuff</span>
+                        <span class="link-author">Yukito</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://koteitan.github.io/" target="_blank" rel="noopener">
+                        <span class="link-text">koteitan Portfolio</span>
+                        <span class="link-author">koteitan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://kyodaisuu.github.io/" target="_blank" rel="noopener">
+                        <span class="link-text">Fish repository</span>
+                        <span class="link-author">Fish</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://solarzone1010.github.io/" target="_blank" rel="noopener">
+                        <span class="link-text">solarzone1010.github.io</span>
+                        <span class="link-author">solarzone</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://veryrrd.googology.top/" target="_blank" rel="noopener">
+                        <span class="link-text">VeryrrDefine's Homepage</span>
+                        <span class="link-author">VeryrrDefine</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 中文 Googology 社群 ============ -->
+        <section class="version-section" id="community">
+            <div class="section-header">
+                <h2>💬 中文 Googology 社群</h2>
+            </div>
+
+            <h3 class="list-subtitle">百度贴吧</h3>
+            <ul class="link-list grid">
+                <li><a href="https://tieba.baidu.com/f?kw=葛立恒数二" target="_blank" rel="noopener"><span class="link-text">葛立恒数二吧</span></a></li>
+                <li><a href="https://tieba.baidu.com/f?kw=葛立恒数" target="_blank" rel="noopener"><span class="link-text">葛立恒数吧</span></a></li>
+                <li><a href="https://tieba.baidu.com/f?kw=大数数学" target="_blank" rel="noopener"><span class="link-text">大数数学吧</span></a></li>
+                <li><a href="https://tieba.baidu.com/f?kw=ychfugug" target="_blank" rel="noopener"><span class="link-text">ychfugug吧</span></a></li>
+                <li><a href="https://tieba.baidu.com/f?kw=序数增量" target="_blank" rel="noopener"><span class="link-text">序数增量吧</span></a></li>
+            </ul>
+
+            <h3 class="list-subtitle">知乎</h3>
+            <div class="placeholder-box"></div>
+
+            <h3 class="list-subtitle">QQ 群</h3>
+            <div class="placeholder-box"></div>
+        </section>
+
+        <!-- ============ 形式化证明类 ============ -->
+        <section class="version-section" id="formal">
+            <div class="section-header">
+                <h2>✅ 形式化证明类</h2>
+            </div>
+            <ul class="link-list">
+                <li>
+                    <a href="https://github.com/ccz181078/Coq-BB5" target="_blank" rel="noopener">
+                        <span class="link-text">Coq-BB5 · BB(5)（及以下）取值的证明</span>
+                        <span class="link-author">mxdys</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/lanxinge/YesMetaZFC" target="_blank" rel="noopener">
+                        <span class="link-text">YesMetaZFC · 一些形式化基础，多个项目的上游</span>
+                        <span class="link-author">时槻咏末</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/EgoFakeFantasy/FullMarkedBLP" target="_blank" rel="noopener">
+                        <span class="link-text">FullMarkedBLP · 带标记补全 blp 的良序性证明</span>
+                        <span class="link-author">虚妄之幻</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/EgoFakeFantasy/BMS-Well-Ordering-Lean" target="_blank" rel="noopener">
+                        <span class="link-text">BMS-Well-Ordering-Lean · BMS 的良序性证明</span>
+                        <span class="link-author">虚妄之幻</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/EgoFakeFantasy/IBLP-Wellfoundedness" target="_blank" rel="noopener">
+                        <span class="link-text">IBLP-Wellfoundedness · iblp 的良序性证明</span>
+                        <span class="link-author">虚妄之幻</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/Phyrion1343/0Y-Well-Ordering-Lean" target="_blank" rel="noopener">
+                        <span class="link-text">0Y-Well-Ordering-Lean · 0-Y 的良序性证明</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/Phyrion1343/1Y-Well-Ordering-Lean" target="_blank" rel="noopener">
+                        <span class="link-text">1Y-Well-Ordering-Lean · 1-Y 的良序性证明</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/Phyrion1343/omega-Y-Well-Ordering-Lean" target="_blank" rel="noopener">
+                        <span class="link-text">omega-Y-Well-Ordering-Lean · ω-Y 的良序性证明</span>
+                        <span class="link-author">Phyrion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/zball-bz/kp-1y-well-ordering" target="_blank" rel="noopener">
+                        <span class="link-text">kp-1y-well-ordering · 限制公理体系 KP+ω₁ 下 1-Y 的良序性证明</span>
+                        <span class="link-author">zball</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- ============ 其他 ============ -->
+        <section class="version-section" id="others">
+            <div class="section-header">
+                <h2>🎮 其他</h2>
+            </div>
+
+            <h3 class="list-subtitle">游戏 / 工具</h3>
+            <ul class="link-list">
+                <li>
+                    <a href="https://g1tyx.github.io/ordinal-markup/" target="_blank" rel="noopener">
+                        <span class="link-text">序数增量（Ordinal Markup）· 以 Googology 为基础的增量游戏</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://patcailmemer.github.io/om-fse-minus/" target="_blank" rel="noopener">
+                        <span class="link-text">Ordinal Markup FSE（Factor Shift Edition）· 简单版本</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://rbn-rewrite-team.github.io/RBNR/" target="_blank" rel="noopener">
+                        <span class="link-text">RBNR · 大数之路重制版</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://rngdelak.github.io/animpossiblegame" target="_blank" rel="noopener">
+                        <span class="link-text">An Impossible Game</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://mrredsharkfan.github.io/bms-lngi/interface.html" target="_blank" rel="noopener">
+                        <span class="link-text">BMS-LNGI</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://koteitan.github.io/googolbook-lm/data/ja-googology-wiki/" target="_blank" rel="noopener">
+                        <span class="link-text">GoogolBook-LM · 可以回答 Googology 问题的 LLM</span>
+                        <span class="link-author">koteitan</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">FG 相关 wiki</h3>
+            <ul class="link-list">
+                <li>
+                    <a href="https://fictional-googology.fandom.com/wiki/Fictional_Googology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Fictional Googology Wiki</span>
+                        <span class="link-author">5,502 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://beyondcosmology.fandom.com/wiki/Beyond-Cosmology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Beyond-Cosmology Wiki</span>
+                        <span class="link-author">4,530 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://alldimensions.fandom.com/wiki/All_dimensions_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">All Dimensions Wiki</span>
+                        <span class="link-author">3,825 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://jtohs-joke-towers.fandom.com/wiki/EToH's_Joke_Towers_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">JToH's Joke Towers Wiki</span>
+                        <span class="link-author">3,041 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://beyond-universe.fandom.com/wiki/Beyond_Universe_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Beyond Universe Wiki</span>
+                        <span class="link-author">1,515 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://verse-and-dimensions.fandom.com/wiki/Verse_and_Dimensions_Wikia" target="_blank" rel="noopener">
+                        <span class="link-text">Verse and Dimensions Wikia</span>
+                        <span class="link-author">1,246 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://the-beyond-fg.fandom.com/wiki/The_Beyond_FG_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Transcendental FG Wiki</span>
+                        <span class="link-author">148 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://the-celestialology.fandom.com/wiki/The_Celestialology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">The Celestialology Wiki</span>
+                        <span class="link-author">105 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://outdatedhgarch.fandom.com/wiki/Outdated_HG_Archive" target="_blank" rel="noopener">
+                        <span class="link-text">Outdated HG Archive</span>
+                        <span class="link-author">101 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://finite-fictional-googology.fandom.com/wiki/Finite_fictional_googology_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Finite Fictional Googology Wiki</span>
+                        <span class="link-author">100 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://the-page-project.fandom.com/wiki/The_Page_Project_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">The Page Project Wiki</span>
+                        <span class="link-author">65 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://fictional-googology-remastered.fandom.com/wiki/Fictional_Googology_Remastered_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">Fictional Googology Remastered Wiki</span>
+                        <span class="link-author">61 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://fgyt.fandom.com/wiki/The_Numerical_Storage_Wiki" target="_blank" rel="noopener">
+                        <span class="link-text">The Numerical Storage Wiki</span>
+                        <span class="link-author">46 页</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="is-closed" href="https://googology-and-fictional-googology.fandom.com/" target="_blank" rel="noopener">
+                        <span class="link-text">Googology And Fictional Googology Wiki</span>
+                        <span class="link-author">已关闭</span>
+                    </a>
+                </li>
+            </ul>
+
+            <h3 class="list-subtitle">部分位于 sites.google.com 的资料</h3>
+            <ul class="link-list">
+                <li>
+                    <a href="https://sites.google.com/view/haydens-big-numbers/home" target="_blank" rel="noopener">
+                        <span class="link-text">Hayden's Big Numbers</span>
+                        <span class="link-author">Hayden</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/view/argoogol/home" target="_blank" rel="noopener">
+                        <span class="link-text">AR Googol</span>
+                        <span class="link-author">ARSygo</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/view/intermediate-exe-continued/home" target="_blank" rel="noopener">
+                        <span class="link-text">ExE ultimate googolism generator</span>
+                        <span class="link-author">DeepLineMadom</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/view/pointless-googolplex-stuffs/home" target="_blank" rel="noopener">
+                        <span class="link-text">Pointless Googolplex Stuffs</span>
+                        <span class="link-author">DeepLineMadom</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/gnspes.ca/impossible-numbers/home" target="_blank" rel="noopener">
+                        <span class="link-text">Spiralton's Website</span>
+                        <span class="link-author">Antfarmerguys</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/view/transcology/home" target="_blank" rel="noopener">
+                        <span class="link-text">Transcology</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/site/largenumbers/" target="_blank" rel="noopener">
+                        <span class="link-text">LARGE NUMBERS</span>
+                        <span class="link-author">Sbiis Saibian</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/site/pointlesslargenumberstuff" target="_blank" rel="noopener">
+                        <span class="link-text">Pointless Large Number Stuff</span>
+                        <span class="link-author">cookiefonster</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="https://sites.google.com/site/travelingtotheinfinity" target="_blank" rel="noopener">
+                        <span class="link-text">Traveling To The Infinity</span>
+                        <span class="link-author">Maksudov, Denis</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <div class="footer">
+            返回 <a href="../index.html">工具导航</a>
+        </div>
+    </div>
+</body>
+</html>

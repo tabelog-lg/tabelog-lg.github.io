@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+# 必须保留 CRLF 的例外
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
