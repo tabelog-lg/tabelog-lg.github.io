@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PDF 页面提取</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Microsoft YaHei", sans-serif;
+    background: #eef1f6;
+    color: #1f2937;
+  }
+  .card {
+    width: min(100%, 640px);
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  }
+  h1 { font-size: 20px; margin: 0 0 6px; }
+  .sub { color: #6b7280; font-size: 13px; margin: 0 0 24px; }
+
+  .step { margin-bottom: 20px; }
+  .step-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; margin-bottom: 10px;
+  }
+  .num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #2563eb; color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+  }
+
+  .dropzone {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 28px 16px;
+    border: 2px dashed #cbd5e1; border-radius: 12px;
+    cursor: pointer; transition: .18s; background: #f8fafc;
+    text-align: center; font-size: 14px; color: #475569;
+  }
+  .dropzone:hover, .dropzone.drag {
+    border-color: #2563eb; background: #eff6ff; color: #1d4ed8;
+  }
+  .dz-icon { font-size: 26px; line-height: 1; }
+
+  .file-info {
+    margin-top: 10px; font-size: 13px; color: #475569;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: 8px 12px; word-break: break-all;
+  }
+
+  .input-row { display: flex; gap: 8px; }
+  .text-input {
+    flex: 1; width: 100%; padding: 11px 12px;
+    border: 1px solid #cbd5e1; border-radius: 10px;
+    font-size: 14px; font-family: inherit; color: inherit;
+  }
+  .text-input:focus {
+    outline: none; border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+  }
+  .hint { font-size: 12px; color: #94a3b8; margin-top: 8px; }
+  .hint code {
+    background: #f1f5f9; padding: 1px 5px; border-radius: 4px;
+    font-size: 12px; color: #475569;
+  }
+
+  .actions { display: flex; gap: 12px; margin-top: 24px; }
+  .btn {
+    flex: 1; padding: 11px 16px; border-radius: 10px;
+    border: 1px solid #cbd5e1; background: #fff; color: #334155;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: .15s;
+  }
+  .btn:hover:not(:disabled) { background: #f1f5f9; }
+  .btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: #1d4ed8; }
+  .btn.mini { flex: 0 0 auto; padding: 0 14px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  .status {
+    margin-top: 16px; padding: 10px 12px; border-radius: 10px;
+    font-size: 13px; line-height: 1.55;
+  }
+  .status.info  { background: #eff6ff; color: #1d4ed8; }
+  .status.ok    { background: #ecfdf5; color: #047857; }
+  .status.warn  { background: #fffbeb; color: #b45309; }
+  .status.error { background: #fef2f2; color: #b91c1c; }
+</style>
+</head>
+<body>
+
+<main class="card">
+  <h1>PDF 页面提取</h1>
+  <p class="sub">从 PDF 中抽取指定页面，生成新的 PDF。文件仅在本机处理，不会上传。</p>
+
+  <!-- 1. 上传 -->
+  <section class="step">
+    <div class="step-title"><span class="num">1</span>选择 PDF 文件</div>
+    <label class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden />
+      <span class="dz-icon">📄</span>
+      <span id="dzText">点击选择，或把 PDF 拖到这里</span>
+    </label>
+    <div class="file-info" id="fileInfo" hidden></div>
+  </section>
+
+  <!-- 2. 页码 -->
+  <section class="step">
+    <div class="step-title"><span class="num">2</span>输入要提取的页码</div>
+    <div class="input-row">
+      <input type="text" id="pagesInput" class="text-input"
+             placeholder="例如：1,3-5,7" autocomplete="off" disabled />
+      <button type="button" class="btn mini" id="allBtn" disabled>全部</button>
+    </div>
+    <div class="hint">
+      支持单个页码、逗号分隔、范围（含两端），如 <code>1,3-5,7</code>
+    </div>
+  </section>
+
+  <!-- 3. 操作 -->
+  <div class="actions">
+    <button type="button" class="btn primary" id="extractBtn" disabled>提取页面</button>
+    <button type="button" class="btn" id="downloadBtn" disabled>下载 PDF</button>
+  </div>
+
+  <div class="status" id="status" hidden></div>
+</main>
+
+<!-- pdf-lib UMD 版（全局变量 PDFLib） -->
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const els = {
+    dropzone:   document.getElementById('dropzone'),
+    fileInput:  document.getElementById('fileInput'),
+    dzText:     document.getElementById('dzText'),
+    fileInfo:   document.getElementById('fileInfo'),
+    pagesInput: document.getElementById('pagesInput'),
+    allBtn:     document.getElementById('allBtn'),
+    extractBtn: document.getElementById('extractBtn'),
+    downloadBtn:document.getElementById('downloadBtn'),
+    status:     document.getElementById('status'),
+  };
+
+  /** @type {any} 已加载的源文档 */
+  let srcDoc = null;
+  let srcFileName = '';
+  let totalPages = 0;
+  let resultUrl = null;     // 结果 Blob URL
+  let downloadName = 'output.pdf';
+
+  /* ---------------- 状态栏 ---------------- */
+  function setStatus(msg, type = 'info') {
+    els.status.hidden = false;
+    els.status.className = 'status ' + type;
+    els.status.textContent = msg;
+  }
+  function clearStatus() {
+    els.status.hidden = true;
+    els.status.textContent = '';
+  }
+
+  /* ---------------- 页码解析 ----------------
+   * 支持：单页 5 / 逗号分隔 1,3,5 / 范围 2-4 / 混合 1,3-5,7
+   * 兼容中文逗号、顿号、空格、中文波浪线和「至」
+   */
+  function parsePageList(str) {
+    const set = new Set();
+    const invalid = [];
+
+    // 先把 "1 - 3" 这种范围内的空格去掉，避免被空格拆散
+    const normalized = String(str).replace(
+      /(\d)\s*([-–—~～至])\s*(\d)/g, '$1$2$3'
+    );
+
+    const tokens = normalized.split(/[\s,，、]+/).filter(Boolean);
+
+    for (const part of tokens) {
+      // 纯数字
+      if (/^\d+$/.test(part)) {
+        set.add(parseInt(part, 10));
+        continue;
+      }
+      // 范围 a-b
+      const m = part.match(/^(\d+)([-–—~～至])(\d+)$/);
+      if (m) {
+        let a = parseInt(m[1], 10);
+        let b = parseInt(m[3], 10);
+        if (a > b) [a, b] = [b, a];
+        if (b - a > 5000) {          // 防止误输入导致内存爆炸
+          invalid.push(part);
+          continue;
+        }
+        for (let i = a; i <= b; i++) set.add(i);
+        continue;
+      }
+      invalid.push(part);
+    }
+
+    return { pages: [...set].sort((x, y) => x - y), invalid };
+  }
+
+  /* ---------------- 结果 Blob 管理 ---------------- */
+  function resetResult() {
+    if (resultUrl) {
+      URL.revokeObjectURL(resultUrl);
+      resultUrl = null;
+    }
+    els.downloadBtn.disabled = true;
+  }
+  function setResult(blob, filename) {
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    resultUrl = URL.createObjectURL(blob);
+    downloadName = filename;
+    els.downloadBtn.disabled = false;
+  }
+
+  /* ---------------- 载入 PDF ---------------- */
+  async function handleFile(file) {
+    if (!file) return;
+
+    const isPdf = file.type === 'application/pdf' ||
+                  /\.pdf$/i.test(file.name);
+    if (!isPdf) {
+      setStatus('请选择 PDF 文件。', 'error');
+      return;
+    }
+    if (!window.PDFLib) {
+      setStatus('pdf-lib 未能加载，请检查网络后刷新页面。', 'error');
+      return;
+    }
+
+    // 重置旧状态
+    srcDoc = null;
+    totalPages = 0;
+    resetResult();
+    els.extractBtn.disabled = true;
+    els.allBtn.disabled = true;
+    els.pagesInput.disabled = true;
+    els.fileInfo.hidden = true;
+
+    setStatus('正在读取 PDF…', 'info');
+
+    try {
+      const buffer = await file.arrayBuffer();
+      // ignoreEncryption: 有些 PDF 带权限保护但内容可读，尽量放行
+      const doc = await window.PDFLib.PDFDocument.load(buffer, {
+        ignoreEncryption: true,
+      });
+
+      srcDoc = doc;
+      srcFileName = file.name;
+      totalPages = doc.getPageCount();
+
+      if (totalPages === 0) throw new Error('该 PDF 没有页面');
+
+      els.fileInfo.hidden = false;
+      els.fileInfo.textContent =
+        `${file.name} · 共 ${totalPages} 页 · ` +
+        `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+
+      els.pagesInput.disabled = false;
+      els.allBtn.disabled = false;
+      els.extractBtn.disabled = false;
+      els.pagesInput.focus();
+
+      setStatus(`已加载，共 ${totalPages} 页。请输入要提取的页码。`, 'ok');
+    } catch (err) {
+      srcDoc = null;
+      setStatus('无法解析该 PDF：' + (err.message || err), 'error');
+    }
+  }
+
+  /* ---------------- 提取 ---------------- */
+  async function doExtract() {
+    if (!srcDoc) return;
+
+    resetResult();
+
+    const { pages, invalid } = parsePageList(els.pagesInput.value);
+    const notes = [];
+
+    if (invalid.length) {
+      notes.push(`忽略无效输入：${invalid.join('、')}`);
+    }
+    if (pages.length === 0) {
+      setStatus(
+        (notes.length ? notes.join('；') + '。' : '') + '请输入有效的页码。',
+        'error'
+      );
+      return;
+    }
+
+    const valid = pages.filter((p) => p >= 1 && p <= totalPages);
+    const outOfRange = pages.filter((p) => p < 1 || p > totalPages);
+
+    if (outOfRange.length) {
+      notes.push(
+        `跳过越界页码：${outOfRange.slice(0, 10).join('、')}` +
+        (outOfRange.length > 10 ? ` 等 ${outOfRange.length} 个` : '')
+      );
+    }
+    if (valid.length === 0) {
+      setStatus(
+        notes.join('；') + `。页码需在 1–${totalPages} 之间。`,
+        'error'
+      );
+      return;
+    }
+
+    els.extractBtn.disabled = true;
+    els.downloadBtn.disabled = true;
+    setStatus('正在提取…', 'info');
+    // 让浏览器有机会把上面的状态渲染出来，再做同步计算
+    await new Promise((r) => setTimeout(r, 20));
+
+    try {
+      const outDoc = await window.PDFLib.PDFDocument.create();
+      const copied = await outDoc.copyPages(
+        srcDoc,
+        valid.map((p) => p - 1)
+      );
+      copied.forEach((page) => outDoc.addPage(page));
+
+      // useObjectStreams: false —— 兼容性更好，个别老阅读器/打印机会受益
+      const bytes = await outDoc.save({ useObjectStreams: false });
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+
+      const base = srcFileName.replace(/\.pdf$/i, '');
+      setResult(blob, `${base}-pages.pdf`);
+
+      setStatus(
+        `成功提取 ${valid.length} 页。` +
+        (notes.length ? '\n' + notes.join('；') + '。' : '') +
+        ' 点击「下载 PDF」保存。',
+        notes.length ? 'warn' : 'ok'
+      );
+    } catch (err) {
+      setStatus('提取失败：' + (err.message || err), 'error');
+    } finally {
+      els.extractBtn.disabled = false;
+    }
+  }
+
+  /* ---------------- 下载 ---------------- */
+  function doDownload() {
+    if (!resultUrl) return;
+    const a = document.createElement('a');
+    a.href = resultUrl;
+    a.download = downloadName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  /* ---------------- 事件绑定 ---------------- */
+  els.fileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    handleFile(f);
+    // 允许重复选择同一个文件
+    e.target.value = '';
+  });
+
+  // 拖拽
+  ['dragenter', 'dragover'].forEach((ev) =>
+    els.dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      els.dropzone.classList.add('drag');
+    })
+  );
+  ['dragleave', 'drop'].forEach((ev) =>
+    els.dropzone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      els.dropzone.classList.remove('drag');
+    })
+  );
+  els.dropzone.addEventListener('drop', (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+
+  // 「全部」快捷填充
+  els.allBtn.addEventListener('click', () => {
+    if (!totalPages) return;
+    els.pagesInput.value = totalPages === 1 ? '1' : `1-${totalPages}`;
+    els.pagesInput.focus();
+  });
+
+  els.extractBtn.addEventListener('click', doExtract);
+  els.downloadBtn.addEventListener('click', doDownload);
+  els.pagesInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !els.extractBtn.disabled) doExtract();
+  });
+
+  // CDN 加载失败提示
+  window.addEventListener('load', () => {
+    if (!window.PDFLib) {
+      setStatus(
+        'pdf-lib 加载失败。请检查网络，或把 pdf-lib.min.js 下载到本地，' +
+        '并修改 <script src="..."> 指向本地文件。',
+        'error'
+      );
+    }
+  });
+})();
+</script>
+</body>
+</html>
