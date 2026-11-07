@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Googology 导引 · 小工具集合</title>
-    <link rel="stylesheet" href="../base.css">
-    <link rel="stylesheet" href="../nav.css">
+    <title>Googology 导引 · tabelog's local website</title>
+    <link rel="stylesheet" href="../assets/site.css">
     <style>
         /* ===== 本页专属：紧凑链接列表 ===== */
         .link-list {
@@ -135,18 +134,29 @@
             .link-list .link-author { display: none; }
         }
     </style>
+    <script src="../assets/site.js" defer></script>
 </head>
-<body class="page-nav">
+<body class="page-nav has-site-nav" data-section="googology">
+    <header class="site-nav">
+        <a class="site-nav__brand" href="../index.html">
+            <span class="site-nav__mark">t</span>
+            <span>tabelog<span class="site-nav__dot">.</span>local</span>
+        </a>
+        <nav class="site-nav__links" aria-label="主导航">
+            <a href="../index.html" data-nav="home">首页</a>
+            <a href="../tools/index.html" data-nav="tools">工具</a>
+            <a href="../googology/index.html" data-nav="googology">Googology</a>
+            <a href="../deductrium/index.html" data-nav="deductrium">Deductrium</a>
+            <a href="../tools/original/index.html" data-nav="archive">归档</a>
+        </nav>
+        <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+    </header>
+
     <div class="container">
-
-        <!-- 面包屑 -->
-        <div class="breadcrumb">
-            <a href="../index.html">← 返回工具导航</a>
-            <span class="sep">/</span>
-            <span>Googology 导引</span>
+        <div class="site-crumb">
+            <a href="../index.html">首页</a><span class="sep">›</span><span class="cur">Googology 导引</span>
         </div>
-
-        <!-- 标题 -->
+<!-- 标题 -->
         <div class="header">
             <h1><span class="icon">♾️</span> Googology 导引</h1>
             <p>大数数学 · 记号 · 展开器 · 资料与社群</p>
@@ -935,10 +945,6 @@
                 </li>
             </ul>
         </section>
-
-        <div class="footer">
-            返回 <a href="../index.html">工具导航</a>
-        </div>
-    </div>
+</div>
 </body>
 </html>

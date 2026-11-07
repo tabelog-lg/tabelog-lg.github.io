@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tabelog's local website · 首页</title>
+    <meta name="description" content="tabelog 的本地小站：纯前端小工具、Googology 大数资源导引、Deductrium 形式系统资料与历史版本归档。">
+    <link rel="stylesheet" href="assets/site.css">
+    <script src="assets/site.js" defer></script>
+</head>
+<body class="page-home has-site-nav" data-section="home">
+    <header class="site-nav">
+        <a class="site-nav__brand" href="index.html">
+            <span class="site-nav__mark">t</span>
+            <span>tabelog<span class="site-nav__dot">.</span>local</span>
+        </a>
+        <nav class="site-nav__links" aria-label="主导航">
+            <a href="index.html" data-nav="home">首页</a>
+            <a href="tools/index.html" data-nav="tools">工具</a>
+            <a href="googology/index.html" data-nav="googology">Googology</a>
+            <a href="deductrium/index.html" data-nav="deductrium">Deductrium</a>
+            <a href="tools/original/index.html" data-nav="archive">归档</a>
+        </nav>
+        <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+    </header>
+
+    <div class="container">
+        <section class="hero">
+            <div class="hero__eyebrow">Personal site · GitHub Pages</div>
+            <h1>tabelog's local website</h1>
+            <p>一些随手写的纯前端小工具，加上 Googology 大数数学与 Deductrium 形式系统解谜的资源整理。没有构建步骤，打开即用，数据不出本地。</p>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href="tools/index.html">进入小工具集合 <span>→</span></a>
+                <a class="btn btn--ghost" href="googology/index.html">浏览 Googology 导引</a>
+            </div>
+            <div class="hero__meta">
+                <span>纯静态 · 零依赖构建</span>
+                <span>工具全部本地运行</span>
+                <span>中文内容为主</span>
+            </div>
+        </section>
+
+        <div class="section-title">
+            <h2>站点栏目</h2>
+            <p>按主题分成独立入口，工具页面保持原有地址，直接收藏也不会失效。</p>
+        </div>
+
+        <div class="portal-grid">
+
+            <a class="portal-card" href="tools/index.html">
+                <div class="portal-card__icon">🛠️</div>
+                <h3>小工具集合</h3>
+                <p>进度文档编解码、公式格式转换、中西文间距、文本替换、PDF 页面提取，共 5 个纯前端工具。</p>
+                <div class="portal-card__tags"><span>5 个工具</span><span>本地处理</span></div>
+                <div class="portal-card__go">打开工具导航 →</div>
+            </a>
+
+            <a class="portal-card" href="googology/index.html">
+                <div class="portal-card__icon">♾️</div>
+                <h3>Googology 导引</h3>
+                <p>大数数学相关资源汇总：wiki、入门资料、记号展开器、序数地图、形式化项目与中英文社群。</p>
+                <div class="portal-card__tags"><span>资源导航</span><span>独立栏目</span></div>
+                <div class="portal-card__go">查看导引 →</div>
+            </a>
+
+            <a class="portal-card" href="deductrium/index.html">
+                <div class="portal-card__icon">🎲</div>
+                <h3>Deductrium 相关</h3>
+                <p>形式系统推理结合双曲空间的解谜小游戏：游戏本体、改版、证明助手、攻略与可视化演示。</p>
+                <div class="portal-card__tags"><span>资源导航</span><span>HoTT 可视化</span></div>
+                <div class="portal-card__go">查看资料 →</div>
+            </a>
+
+            <a class="portal-card" href="tools/original/index.html">
+                <div class="portal-card__icon">📦</div>
+                <h3>历史版本归档</h3>
+                <p>各工具的早期迭代版本，按工具分组保留，仅供回顾与对照，不影响当前版本的路径。</p>
+                <div class="portal-card__tags"><span>只读归档</span><span>版本对照</span></div>
+                <div class="portal-card__go">进入归档 →</div>
+            </a>
+
+            <div class="portal-card is-disabled">
+                <div class="portal-card__icon">📝</div>
+                <h3>OI / 学习笔记</h3>
+                <p>竞赛与学习笔记目录，本轮全站重构暂不处理，内容保持原样，待后续单独整理。</p>
+                <div class="portal-card__tags"><span>暂不开放</span><span>整理中</span></div>
+                <div class="portal-card__go">暂不开放</div>
+            </div>
+
+        </div>
+
+        <div class="section-title">
+            <h2>站点结构</h2>
+            <p>全站共用一个设计源；工具逻辑与历史归档按目录隔离，互不干扰。</p>
+        </div>
+
+        <div class="site-tree">/
+├── index.html          站点首页（本页）
+├── 404.html            统一 404 页
+├── assets/             全站设计系统
+│   ├── site.css        tokens / 顶栏 / 面包屑 / 页脚 / 首页组件
+│   ├── site.js         导航高亮与统一页脚
+│   ├── tools.css       工具页专属外观
+│   └── tools-form.css  工具表单控件外观
+├── tools/              小工具集合（5 个工具 HTML 路径不变）
+│   ├── index.html      工具导航
+│   ├── *.html / *.js   当前版本工具
+│   └── original/       历史版本归档
+├── googology/          Googology 中心页（已从 tools/ 提升为独立栏目）
+├── deductrium/         Deductrium 中心页 + HoTT 可视化
+└── OI/                 竞赛笔记（本轮重构忽略，保持原样）</div>
+
+        <div class="section-title"><h2>关于</h2></div>
+        <div class="note-box">
+            <span class="note-icon">💡</span>
+            <div>
+                本站是静态站点，可直接由 GitHub Pages 托管：没有打包器、没有运行时依赖，所有工具都在浏览器内完成计算。
+                <code>tools/</code> 下的工具页面地址保持不变；<code>googology/</code> 与 <code>deductrium/</code> 作为内容栏目独立于工具集合；
+                <code>OI/</code> 目录暂不改动。早期版本集中放在 <code>tools/original/</code>，日常使用请以当前版本为准。
+            </div>
+        </div>
+
+        <footer class="site-footer">
+            <span>© 2026 tabelog-lg · tabelog's local website</span>
+            <span class="site-footer__links">
+                <a href="index.html">首页</a>
+                <a href="tools/index.html">工具</a>
+                <a href="googology/index.html">Googology</a>
+                <a href="deductrium/index.html">Deductrium</a>
+                <a href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+            </span>
+        </footer>
+    </div>
+</body>
+</html>
