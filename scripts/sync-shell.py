@@ -3,43 +3,23 @@
 """同步全站统一壳层（幂等，可重复运行）。
 
 顶栏与面包屑以静态 HTML 写入各内容页，保证无 JS 时导航仍可用。
-需要修改导航项、站点名或面包屑文案时，改下面的模板与 PAGES 配置，
-然后执行：python3 scripts/sync-shell.py
+导航模板统一放在 scripts/shell_common.py；改导航项后运行：
+
+    python3 scripts/sync-shell.py
+
 
 不在同步范围：tools/original/ 下的历史工具快照、deductrium/HoTT-visualization.html、
 OI/ 目录（均保持原样）。
 """
 import os
 import re
+import sys
 import hashlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from shell_common import nav, crumb  # noqa: E402
 
-
-def nav(root):
-    return f'''    <header class="site-nav">
-        <a class="site-nav__brand" href="{root}index.html">
-            <span class="site-nav__mark">t</span>
-            <span>tabelog<span class="site-nav__dot">.</span>local</span>
-        </a>
-        <nav class="site-nav__links" aria-label="主导航">
-            <a href="{root}index.html" data-nav="home">首页</a>
-            <a href="{root}tools/index.html" data-nav="tools">工具</a>
-            <a href="{root}googology/index.html" data-nav="googology">Googology</a>
-            <a href="{root}deductrium/index.html" data-nav="deductrium">Deductrium</a>
-            <a href="{root}tools/original/index.html" data-nav="archive">归档</a>
-        </nav>
-        <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
-    </header>
-'''
-
-
-def crumb(root, items):
-    parts = [f'<a href="{root}index.html">首页</a>']
-    for label, href in items[:-1]:
-        parts.append(f'<span class="sep">›</span><a href="{href}">{label}</a>')
-    parts.append(f'<span class="sep">›</span><span class="cur">{items[-1][0]}</span>')
-    return '        <div class="site-crumb">\n            ' + ''.join(parts) + '\n        </div>\n'
 
 
 # path, root（到站点根的相对前缀）, section, crumb items（None 表示该页不放面包屑）

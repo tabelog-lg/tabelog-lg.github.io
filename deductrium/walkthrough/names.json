@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "comment": "中文文档名 → ASCII 文件代号。gen_walkthrough.py 每次运行会据此批量规范化 archives/ 与 static/ 下的文件名；新出现的中文文档名会自动分配 doc-<hash8> 并写回本文件。改这里的代号后重跑脚本，旧文件会自动迁移到新代号。",
+  "archives": {
+    "Deductrium 攻略第一章 命题逻辑": "ch1",
+    "Deductrium 攻略第二章 一阶逻辑": "ch2",
+    "Deductrium 攻略第三章 皮亚诺算数(PA)": "ch3",
+    "Deductrium 攻略第四章 ZFC(策梅洛-弗兰克尔集合论加选择公理)": "ch4",
+    "Deductrium 攻略第五章 数系": "ch5",
+    "Deductrium 攻略第六章 类型论Σ依赖和前后": "ch6",
+    "Deductrium 攻略第七章 类型论W良基树前后": "ch7",
+    "Deductrium 攻略第八章 同伦类型论(第1部分)": "ch8a",
+    "Deductrium 攻略第八章 同伦类型论(第2部分)": "ch8b",
+    "附录": "appendix"
+  },
+  "static": {
+    "Fin 自等价数与阶乘": "fin",
+    "Deductrium 当前版本 94_96 全可达成就从零复现路线": "route94"
+  },
+  "aliases": {
+    "archives": {
+      "ch1": "Deductrium 攻略第一章 命题逻辑",
+      "ch7": "Deductrium 攻略第七章 类型论W良基树前后",
+      "ch3": "Deductrium 攻略第三章 皮亚诺算数(PA)",
+      "ch2": "Deductrium 攻略第二章 一阶逻辑",
+      "ch5": "Deductrium 攻略第五章 数系",
+      "ch8a": "Deductrium 攻略第八章 同伦类型论(第1部分)",
+      "ch8b": "Deductrium 攻略第八章 同伦类型论(第2部分)",
+      "ch6": "Deductrium 攻略第六章 类型论Σ依赖和前后",
+      "ch4": "Deductrium 攻略第四章 ZFC(策梅洛-弗兰克尔集合论加选择公理)",
+      "appendix": "附录"
+    },
+    "static": {
+      "route94": "Deductrium 当前版本 94_96 全可达成就从零复现路线",
+      "fin": "Fin 自等价数与阶乘"
+    }
+  }
+}

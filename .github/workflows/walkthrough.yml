@@ -1,0 +1,49 @@
+name: Rebuild walkthrough archives
+
+# 静态站点无法在浏览器里列目录，因此采用「构建期扫描 + 提交回仓库」的方式：
+# 只要新增/删除一份 .md 存档、改了文章配置或生成脚本，就自动重建主页与全部中心页。
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deductrium/walkthrough/archives/**'
+      - 'deductrium/walkthrough/static/**'
+      - 'deductrium/walkthrough/articles.json'
+      - 'deductrium/walkthrough/names.json'
+      - 'scripts/gen_walkthrough.py'
+      - 'scripts/shell_common.py'
+      - '.github/workflows/walkthrough.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: walkthrough-rebuild
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate home page and document centers
+        run: python3 scripts/gen_walkthrough.py
+
+      - name: Commit generated pages if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 批量改名的 .md、names.json、生成的页面都要一起提交
+          git add -A deductrium/walkthrough
+          if git diff --staged --quiet; then
+            echo "No changes, skip commit."
+          else
+            git commit -m "chore: normalize filenames and rebuild walkthrough pages [skip ci]"
+            git push
+          fi
