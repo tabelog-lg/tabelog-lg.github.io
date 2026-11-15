@@ -13,19 +13,38 @@
 │   ├── site.css          tokens / 顶栏 / 面包屑 / 页脚 / 首页组件（单一设计源）
 │   ├── site.js           当前栏目高亮 + 统一页脚注入
 │   ├── tools.css         工具页专属外观
-│   ├── tools-form.css    工具表单控件外观
-│   └── walkthrough.css   攻略存档栏目样式
+│   └── tools-form.css    工具表单控件外观
 ├── tools/                小工具集合（5 个工具 HTML 路径保持不变）
 │   ├── index.html        工具导航
 │   ├── *.html / *.js     当前版本工具
 │   └── original/         早期版本归档（只读）
 ├── googology/            Googology 中心页
 ├── deductrium/           Deductrium 中心页 + HoTT 交互可视化
-│   └── walkthrough/      攻略存档：names.json 代号表 / archives / static / docs（页面自动生成）
-├── scripts/              站点生成脚本（共用壳层模板）
-├── .github/workflows/    push 时自动重建攻略存档页面
+│   └── walkthrough/      攻略存档旧路径（仅保留一张跳转提示页）
 └── OI/                   竞赛笔记（本轮重构忽略，内容保持原样）
 ```
+
+## 攻略存档已迁至独立站点
+
+攻略存档（原文链接、Markdown 历史存档、各文档中心页、在线查看器、自动生成脚本）已整体搬到独立仓库
+[`tabelog-lg/deductrium-walkthrough`](https://github.com/tabelog-lg/deductrium-walkthrough)，
+线上地址：**https://tabelog-lg.github.io/deductrium-walkthrough/**。
+
+原站这边保留的内容：
+
+- `deductrium/index.html`「📘 攻略」区块顶部的入口卡片，指向新站（新标签页打开）；下方 13 篇 HedgeDoc 攻略原文链接与其它攻略链接保持原样。
+- `deductrium/walkthrough/index.html`：一张**跳转提示页**，2 秒后自动前往新站（`?stay=1` 可留在本页）。这样旧的 `/deductrium/walkthrough/` 收藏不会变成死链。
+
+已从原站移除的内容：
+
+- `deductrium/walkthrough/` 下的 933 份历史存档 `.md`、11 个中心页、2 份静态 `.md`、`articles.json` / `names.json` / 栏目 README；
+- `assets/walkthrough.css`（只服务旧攻略页）；
+- `scripts/` 整个目录（`gen_walkthrough.py`、`shell_common.py`、`sync-shell.py` 与缓存）——生成脚本已搬去新仓库，原站不再需要；
+- `.github/workflows/walkthrough.yml`——自动重建工作流已搬去新仓库。
+
+> 深层旧链接（如 `/deductrium/walkthrough/docs/ch1.html`）已不再可用，会落到统一 404 页；
+> 请从新站主页进入对应文档中心页。新站的页面生成、文件名规范化与 push 自动重建，
+> 见新仓库的 `README.md` 与 `ARCHIVE-GUIDE.md`。
 
 ## 本轮重构要点
 
@@ -41,9 +60,8 @@
 - 内容页的 `<head>` 只需引入 `assets/site.css` 与 `assets/site.js`（按目录层级写相对路径）；工具页额外引入 `assets/tools.css`、`assets/tools-form.css`。
 - `<body>` 上的 `data-section`（`home` / `tools` / `googology` / `deductrium` / `archive`）决定顶栏高亮项。
 - HoTT 可视化页是全屏交互演示，不引入全站样式，仅保留一个浮动返回链接。
-- 顶栏与面包屑由 `scripts/shell_common.py` 提供模板，`scripts/sync-shell.py` 统一写入各页（脚本幂等）。改导航项后运行 `python3 scripts/sync-shell.py`；历史归档快照与 HoTT 可视化页不在同步范围内。
-- **文件名全部 ASCII**：仓库内所有文件名（含生成的页面、存档 `.md`）都是 ASCII，中文只出现在文件内容里。`deductrium/walkthrough/names.json` 是「中文文档名 → 短代号」的对照表。
-- **攻略存档**：`scripts/gen_walkthrough.py` 运行时会先按 `names.json` 把 `archives/` 与 `static/` 下新出现的中文名 `.md` 批量改成短代号名（幂等；改代号、新增文档、替换文件都会被增量识别），再生成主页与各中心页。`static/` 下两个静态 `.md` 不参与历史记录，只在主页保留链接。运行 `python3 scripts/gen_walkthrough.py` 或由 `.github/workflows/walkthrough.yml` 在 push 时自动重建并把改名一起提交。规则见 `deductrium/walkthrough/README.md`。
+- 顶栏、面包屑与页脚已静态写入各 HTML；`site.js` 只负责高亮与在缺少页脚时补一个，站点无构建步骤、无生成脚本依赖。
+- 攻略存档的维护（新增 `.md`、自动改名、生成中心页）全部在独立仓库 `deductrium-walkthrough` 进行，原站只保留入口链接与跳转提示页。
 
 ## 本地预览
 

@@ -3,13 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>攻略存档 · Deductrium</title>
-    <meta name="description" content="Deductrium 攻略文章原文链接、最新存档与各文档历史记录中心页。">
+    <title>攻略存档已迁出 · tabelog's local website</title>
+    <meta name="description" content="Deductrium 攻略存档已独立成站，正在跳转到新的存档主页。">
+    <!-- 旧路径保留为跳转提示页；2 秒后自动前往独立站。
+         meta refresh 只作无 JS 时的兜底，放在 noscript 里，避免 ?stay=1 被强制跳走 -->
+    <noscript><meta http-equiv="refresh" content="2; url=https://tabelog-lg.github.io/deductrium-walkthrough/"></noscript>
     <link rel="stylesheet" href="../../assets/site.css">
-    <link rel="stylesheet" href="../../assets/walkthrough.css">
     <script src="../../assets/site.js" defer></script>
+    <style>
+        .moved-box { max-width: 720px; margin: 12px auto 26px; text-align: center; }
+        .moved-box .icon { font-size: 42px; line-height: 1; display: block; margin-bottom: 12px; }
+        .moved-box h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+        .moved-box p { font-size: 13.5px; line-height: 1.85; color: var(--text-secondary); margin: 0 auto 14px; max-width: 560px; }
+        .moved-box .url {
+            display: inline-block; font-family: var(--font-mono); font-size: 12.5px;
+            background: #fff; border: 1px solid var(--border); border-radius: 8px;
+            padding: 8px 14px; margin-bottom: 18px; word-break: break-all;
+        }
+        .moved-box .url a { color: var(--primary); font-weight: 700; text-decoration: none; }
+        .moved-box .url a:hover { text-decoration: underline; }
+        .moved-box .hero__actions { justify-content: center; }
+        .moved-note { max-width: 720px; margin: 0 auto; font-size: 12.5px; line-height: 1.8; color: var(--text-secondary); }
+        .moved-countdown { color: var(--primary); font-weight: 700; }
+        @media (max-width: 640px) { .moved-box h1 { font-size: 19px; } }
+    </style>
+    <script>
+        // 支持 ?stay=1 留在提示页（方便查看、复制地址），默认 2 秒后跳转
+        (function () {
+            if (/[?&]stay=1(?:&|$)/.test(location.search)) return;
+            setTimeout(function () {
+                location.replace('https://tabelog-lg.github.io/deductrium-walkthrough/');
+            }, 2000);
+        })();
+    </script>
 </head>
-<body class="page-walkthrough has-site-nav" data-section="deductrium">
+<body class="has-site-nav" data-section="deductrium">
     <header class="site-nav">
         <a class="site-nav__brand" href="../../index.html">
             <span class="site-nav__mark">t</span>
@@ -24,265 +52,40 @@
         </nav>
         <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
     </header>
+
     <div class="container">
         <div class="site-crumb">
-            <a href="../../index.html">首页</a><span class="sep">›</span><a href="../index.html">Deductrium 相关</a><span class="sep">›</span><span class="cur">攻略存档</span>
-        </div>
-        <div class="header">
-            <h1><span class="icon">🗃️</span> 攻略存档</h1>
-            <p>Deductrium 攻略文章原文、Markdown 历史存档与各文档的中心页</p>
+            <a href="../../index.html">首页</a><span class="sep">›</span><a href="../index.html">Deductrium 相关</a><span class="sep">›</span><span class="cur">攻略存档（已迁出）</span>
         </div>
 
-        <div class="wk-lead">
-            共 <strong>10</strong> 篇攻略文档、<strong>933</strong> 份历史存档，其中 10 篇已收录，另有 <strong>2</strong> 份静态文档（不参与历史记录）。
-            存档文件统一命名为 <code>[ASCII代号]_[13位毫秒时间戳].md</code>，代号见 <code>names.json</code>；
-            页面里的修改时间由该时间戳换算为 <strong>UTC+8</strong>，字符数按 UTF-8 解码后的 Unicode 字符统计（含换行与空白）。
-            本页与各中心页均由 <code>scripts/gen_walkthrough.py</code> 自动生成，无需手工维护。
-        </div>
-
-        <div class="wk-block">
-            <div class="section-header">
-                <h2>📄 攻略文章总览</h2>
-                <span class="hint">原文网页链接 · 最新存档</span>
+        <div class="moved-box">
+            <span class="icon">🗃️</span>
+            <h1>攻略存档已独立成站</h1>
+            <p>
+                攻略文章存档、各文档中心页与在线查看器已迁到独立的 GitHub Pages 仓库
+                <strong>deductrium-walkthrough</strong>。本路径不再保存历史存档，只保留这一张跳转提示页。
+            </p>
+            <div class="url">
+                <a href="https://tabelog-lg.github.io/deductrium-walkthrough/" target="_blank" rel="noopener">https://tabelog-lg.github.io/deductrium-walkthrough/ ↗</a>
             </div>
-            <div class="wk-table-wrap">
-                <table class="wk-table">
-                    <thead>
-                        <tr>
-                            <th class="col-num">#</th>
-                            <th>攻略文章</th>
-                            <th>原文网页</th>
-                            <th class="col-latest">最新存档</th>
-                            <th class="col-count">存档数</th>
-                            <th class="col-center">中心页</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                <tr>
-                    <td class="col-num">01</td>
-                    <td>
-                        <span class="wk-title">第一章 命题逻辑</span>
-                        <span class="wk-slug">archives/ch1_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/IU_LnfotQT2iZjdZId9YFw" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch1_1793907529136.md" target="_blank" rel="noopener">2026年11月6日 3:38</a><span class="wk-latest-meta">12,841 字符 · <a href="archives/ch1_1793907529136.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">154 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch1.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">02</td>
-                    <td>
-                        <span class="wk-title">第二章 一阶逻辑</span>
-                        <span class="wk-slug">archives/ch2_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/L8W6ggVbSAOvS451Gs6PHw" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch2_1792837704622.md" target="_blank" rel="noopener">2026年10月24日 18:28</a><span class="wk-latest-meta">16,676 字符 · <a href="archives/ch2_1792837704622.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">170 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch2.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">03</td>
-                    <td>
-                        <span class="wk-title">第三章 皮亚诺算数（PA）</span>
-                        <span class="wk-slug">archives/ch3_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/oFtjqCXESCirxALGiuvRbw" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch3_1794051026808.md" target="_blank" rel="noopener">2026年11月7日 19:30</a><span class="wk-latest-meta">19,439 字符 · <a href="archives/ch3_1794051026808.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">165 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch3.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">04</td>
-                    <td>
-                        <span class="wk-title">第四章 ZFC（策梅洛-弗兰克尔集合论加选择公理）</span>
-                        <span class="wk-slug">archives/ch4_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/ljOpREp8Qi6hXUek3BvMSg" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch4_1792837705031.md" target="_blank" rel="noopener">2026年10月24日 18:28</a><span class="wk-latest-meta">15,017 字符 · <a href="archives/ch4_1792837705031.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">109 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch4.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">05</td>
-                    <td>
-                        <span class="wk-title">第五章 数系</span>
-                        <span class="wk-slug">archives/ch5_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/zvcyamTRRwaRHnGHfEh2kQ" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch5_1792837705133.md" target="_blank" rel="noopener">2026年10月24日 18:28</a><span class="wk-latest-meta">19,963 字符 · <a href="archives/ch5_1792837705133.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">82 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch5.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">06</td>
-                    <td>
-                        <span class="wk-title">第六章 类型论 Σ 依赖和前后</span>
-                        <span class="wk-slug">archives/ch6_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/VlrYi5xMRxqt1FsZgqX_5A" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch6_1793054303905.md" target="_blank" rel="noopener">2026年10月27日 6:38</a><span class="wk-latest-meta">37,458 字符 · <a href="archives/ch6_1793054303905.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">141 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch6.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">07</td>
-                    <td>
-                        <span class="wk-title">第七章 类型论 W 良基树前后</span>
-                        <span class="wk-slug">archives/ch7_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/swx1zhnqS1ShQBuEbePFNQ" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch7_1792837704624.md" target="_blank" rel="noopener">2026年10月24日 18:28</a><span class="wk-latest-meta">15,227 字符 · <a href="archives/ch7_1792837704624.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">98 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch7.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">08</td>
-                    <td>
-                        <span class="wk-title">第八章 同伦类型论（第 1 部分）</span>
-                        <span class="wk-slug">archives/ch8a_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/sCGKhuBrSzyRVRMCHG_X1g" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch8a_1792838004201.md" target="_blank" rel="noopener">2026年10月24日 18:33</a><span class="wk-latest-meta">33,281 字符 · <a href="archives/ch8a_1792838004201.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">2 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch8a.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">09</td>
-                    <td>
-                        <span class="wk-title">第八章 同伦类型论（第 2 部分）</span>
-                        <span class="wk-slug">archives/ch8b_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/H0kQsIfGQYSLwB-WUnLYxQ" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/ch8b_1792838004442.md" target="_blank" rel="noopener">2026年10月24日 18:33</a><span class="wk-latest-meta">27,991 字符 · <a href="archives/ch8b_1792838004442.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">2 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/ch8b.html">中心页 →</a></td>
-                </tr>
-                <tr>
-                    <td class="col-num">10</td>
-                    <td>
-                        <span class="wk-title">附录</span>
-                        <span class="wk-slug">archives/appendix_*.md</span>
-                    </td>
-                    <td><a class="wk-url" href="https://hedgedoc.envs.net/h0sDOLJdRUy0TUkqEKNT3g" target="_blank" rel="noopener">原文网页 ↗</a></td>
-                    <td class="col-latest"><a class="wk-latest-time" href="archives/appendix_1794050929217.md" target="_blank" rel="noopener">2026年11月7日 19:28</a><span class="wk-latest-meta">954 字符 · <a href="archives/appendix_1794050929217.md" download>下载 .md ↓</a></span></td>
-                    <td class="col-count"><span class="wk-pill">10 份</span></td>
-                    <td class="col-center"><a class="wk-link" href="docs/appendix.html">中心页 →</a></td>
-                </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="wk-block wk-static-block">
-            <div class="section-header">
-                <h2>📎 静态文档</h2>
-                <span class="hint">只有一份 .md，不参与历史记录</span>
-            </div>
-            <div class="wk-static-list">
-            <div class="wk-static-item">
-                <div class="wk-static-main">
-                    <span class="wk-title">Fin 自等价数与阶乘 </span>
-                    <span class="wk-slug">static/fin.md</span>
-                </div>
-                <div class="wk-static-urls"><a class="wk-url" href="https://hedgedoc.envs.net/qMcJimEyTuCbkUWFjPBenA" target="_blank" rel="noopener">原文网页 ↗</a></div>
-                <div class="wk-actions">
-                    <a href="static/fin.md" target="_blank" rel="noopener">查看 .md</a>
-                    <a href="static/fin.md" download>下载 ↓</a>
-                </div>
-                <div class="wk-static-note">静态文档，不参与历史记录</div>
-            </div>
-            <div class="wk-static-item">
-                <div class="wk-static-main">
-                    <span class="wk-title">当前版本 94/96 全可达成就从零复现路线 </span>
-                    <span class="wk-slug">static/route94.md</span>
-                </div>
-                <div class="wk-static-urls"><a class="wk-url" href="https://hedgedoc.envs.net/0Il3CvaLTxeTCQxeFok_EA" target="_blank" rel="noopener">原文 (1) ↗</a> <a class="wk-url" href="https://hedgedoc.envs.net/2YQBSFnuQ0Say34M0YntwQ" target="_blank" rel="noopener">原文 (2) ↗</a></div>
-                <div class="wk-actions">
-                    <a href="static/route94.md" target="_blank" rel="noopener">查看 .md</a>
-                    <a href="static/route94.md" download>下载 ↓</a>
-                </div>
-                <div class="wk-static-note">静态文档，不参与历史记录（原文分 1 / 2 两篇）</div>
-            </div>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href="https://tabelog-lg.github.io/deductrium-walkthrough/" target="_blank" rel="noopener">立即前往新站 →</a>
+                <a class="btn btn--ghost" href="../index.html">返回 Deductrium 相关</a>
             </div>
         </div>
 
         <hr class="divider">
 
-        <div class="wk-block">
-            <div class="section-header">
-                <h2>🗂 各文档中心页</h2>
-                <span class="hint">每篇文章的全部历史记录</span>
-            </div>
-            <div class="wk-grid">
-            <a class="wk-card" href="docs/ch1.html">
-                <div class="wk-card__top"><h3>第一章 命题逻辑</h3><span class="wk-card__icon">🗂</span></div>
-                <p>命题逻辑入门、宏录制与双重否定</p>
-                <div class="wk-card__foot"><span>154 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch2.html">
-                <div class="wk-card__top"><h3>第二章 一阶逻辑</h3><span class="wk-card__icon">🗂</span></div>
-                <p>量词、自由出现与见证变量管理</p>
-                <div class="wk-card__foot"><span>170 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch3.html">
-                <div class="wk-card__top"><h3>第三章 皮亚诺算数（PA）</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年11月7日 19:30 · 19,439 字符</p>
-                <div class="wk-card__foot"><span>165 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch4.html">
-                <div class="wk-card__top"><h3>第四章 ZFC（策梅洛-弗兰克尔集合论加选择公理）</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年10月24日 18:28 · 15,017 字符</p>
-                <div class="wk-card__foot"><span>109 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch5.html">
-                <div class="wk-card__top"><h3>第五章 数系</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年10月24日 18:28 · 19,963 字符</p>
-                <div class="wk-card__foot"><span>82 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch6.html">
-                <div class="wk-card__top"><h3>第六章 类型论 Σ 依赖和前后</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年10月27日 6:38 · 37,458 字符</p>
-                <div class="wk-card__foot"><span>141 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch7.html">
-                <div class="wk-card__top"><h3>第七章 类型论 W 良基树前后</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年10月24日 18:28 · 15,227 字符</p>
-                <div class="wk-card__foot"><span>98 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch8a.html">
-                <div class="wk-card__top"><h3>第八章 同伦类型论（第 1 部分）</h3><span class="wk-card__icon">🗂</span></div>
-                <p>路径、相等与高阶归纳类型</p>
-                <div class="wk-card__foot"><span>2 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/ch8b.html">
-                <div class="wk-card__top"><h3>第八章 同伦类型论（第 2 部分）</h3><span class="wk-card__icon">🗂</span></div>
-                <p>最新：2026年10月24日 18:33 · 27,991 字符</p>
-                <div class="wk-card__foot"><span>2 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card" href="docs/appendix.html">
-                <div class="wk-card__top"><h3>附录</h3><span class="wk-card__icon">🗂</span></div>
-                <p>记号表与进度文档速查</p>
-                <div class="wk-card__foot"><span>10 份存档</span><span class="wk-card__go">查看 →</span></div>
-            </a>
-            <a class="wk-card is-static" href="static/fin.md" target="_blank" rel="noopener">
-                <div class="wk-card__top"><h3>Fin 自等价数与阶乘</h3><span class="wk-card__icon">📎</span></div>
-                <p>静态文档 · 静态文档，不参与历史记录，点击直接打开 .md 文件。</p>
-                <div class="wk-card__foot"><span>静态 .md</span><span class="wk-card__go">打开 →</span></div>
-            </a>
-            <a class="wk-card is-static" href="static/route94.md" target="_blank" rel="noopener">
-                <div class="wk-card__top"><h3>当前版本 94/96 全可达成就从零复现路线</h3><span class="wk-card__icon">📎</span></div>
-                <p>静态文档 · 静态文档，不参与历史记录（原文分 1 / 2 两篇），点击直接打开 .md 文件。</p>
-                <div class="wk-card__foot"><span>静态 .md</span><span class="wk-card__go">打开 →</span></div>
-            </a>
+        <div class="note-box">
+            <span>ℹ️</span>
+            <div id="moved-tip">
+                页面将在 <span class="moved-countdown" id="countdown">2</span> 秒后自动跳转。若浏览器未跳转，请点击上方按钮；
+                想留在本页查看地址，可加上 <code>?stay=1</code>。
+                旧的 <code>/deductrium/walkthrough/docs/…</code> 等深层链接已不再可用，请从新站主页进入对应文档中心页。
+                下方 13 篇攻略原文链接仍保留在 <a href="../index.html">Deductrium 相关</a> 页面。
             </div>
         </div>
 
-        <div class="wk-note">
-            原文链接与文章说明在 <code>articles.json</code> 中维护，中文文档名到 ASCII 文件代号的对照在
-            <code>names.json</code> 中维护。放进新的 <code>.md</code> 后重新运行生成脚本（或直接 push，由 Actions 自动重建），
-            中文文件名会被自动批量改成短代号，主页与对应中心页同步更新。
-            静态 <code>.md</code> 放在 <code>static/</code>，不参与历史记录。
-        </div>
         <footer class="site-footer">
             <span>© 2026 tabelog-lg · tabelog's local website</span>
             <span class="site-footer__links">
@@ -294,5 +97,21 @@
             </span>
         </footer>
     </div>
+
+    <script>
+        (function () {
+            var box = document.getElementById('moved-tip');
+            if (/[?&]stay=1(?:&|$)/.test(location.search)) {
+                if (box) box.innerHTML = '当前处于停留模式（<code>?stay=1</code>），不会自动跳转；点击上方「立即前往新站」即可离开。旧的深层链接已不再可用，13 篇攻略原文链接仍保留在 <a href="../index.html">Deductrium 相关</a> 页面。';
+                return;
+            }
+            var n = 2, el = document.getElementById('countdown');
+            var t = setInterval(function () {
+                n -= 1;
+                if (el) el.textContent = n > 0 ? String(n) : '0';
+                if (n <= 0) clearInterval(t);
+            }, 1000);
+        })();
+    </script>
 </body>
 </html>
