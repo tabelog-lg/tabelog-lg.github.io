@@ -162,7 +162,12 @@
 }
 
     </style>
-    <script src="ddtparse.js" defer></script>
+    <script src="ddtparse-data.js" defer></script>
+    <script src="ddtparse-lzstring.js" defer></script>
+    <script src="ddtparse-codec.js" defer></script>
+    <script src="ddtparse-ui.js" defer></script>
+    <script src="ddtparse-analysis.js" defer></script>
+    <script src="ddtparse-app.js" defer></script>
     <script src="../assets/site.js" defer></script>
 </head>
 <body class="page-ddtparse has-site-nav" data-section="tools">
@@ -317,6 +322,7 @@
 - v4.3: 重制页面 css
 - v5: 增加搜索推理规则并递归搜索依赖推理规则
 - v6: 增加对 Deductrium 2 的支持
+- v6.1: 重构：将单文件脚本拆分为多个模块，功能不变；历史版本由构建脚本自动打包生成
 -->
 
 </html>

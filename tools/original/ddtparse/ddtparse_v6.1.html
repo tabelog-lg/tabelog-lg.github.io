@@ -1,3 +1,1341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进度文档解码/编码器</title>
+    <!-- 本文件由 tools/build-ddtparse.py 从当前版自动打包生成，请勿手工编辑。
+     源：tools/ddtparse.html + 其引用的 CSS/JS 模块；改动请改源文件后重跑脚本。 -->
+    <style>
+
+/* ===== 内联：../assets/site.css ===== */
+/* ==========================================================================
+   site.css · tabelog's local website 全站设计系统
+   --------------------------------------------------------------------------
+   单一设计源：设计变量、重置、页面骨架、站点顶栏、面包屑、页脚、首页组件。
+   兼容层：保留旧站内页使用的 .container / .header / .section-header /
+           .breadcrumb / .card-link / .footer / .version-section 等类名，
+           使历史页面内联样式无需改动即可继续工作。
+   工具页专属外观在 tools.css / tools-form.css，逻辑在 tools/*.js。
+   ========================================================================== */
+
+/* ============================ 01 设计变量 ============================ */
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --primary: #4a6cf7;
+    --primary-hover: #3b5de7;
+    --primary-soft: #eef2ff;
+    --primary-line: #c7d2fe;
+    --success: #22c55e;
+    --success-hover: #16a34a;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --text-secondary: #6b7280;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 4px 24px rgba(0, 0, 0, 0.04);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+
+    /* 站点壳层 */
+    --nav-height: 56px;
+    --nav-bg: #111a2e;
+    --nav-bg-2: #1b2a4a;
+    --nav-fg: #e8edf7;
+    --nav-fg-dim: #a9b6cf;
+    --grad: linear-gradient(135deg, #4a6cf7 0%, #8b5cf6 100%);
+}
+
+/* ========================= 02 重置与页面骨架 ========================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', -apple-system, sans-serif;
+    background: var(--bg-color);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 全站顶栏为 fixed，所有挂了顶栏的页面统一让出顶部空间 */
+body.has-site-nav { padding-top: calc(var(--nav-height) + 28px) !important; }
+
+.container {
+    width: 100%;
+    max-width: 1280px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px 28px;
+    border: 1px solid var(--border);
+}
+
+/* ============================= 03 页头 ============================= */
+.header { text-align: center; margin-bottom: 28px; }
+.header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.header h1 .icon { font-size: 30px; }
+.header p { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
+
+/* ========================= 04 区块头 / 徽标 ========================= */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.section-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.badge {
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+.hint { font-size: 12px; color: var(--text-secondary); font-style: italic; }
+
+/* ============================ 05 分隔线 ============================ */
+.divider { border: none; border-top: 2px dashed var(--border); margin: 8px 0 28px; }
+
+/* ==================== 06 兼容：旧页脚 / 行内代码 ==================== */
+.footer {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+.footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+code {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 1px 6px;
+    background: var(--primary-soft);
+    border-radius: 4px;
+    color: var(--primary);
+}
+
+/* ==================== 07 兼容：导航类页面结构 ==================== */
+.version-section { margin-bottom: 28px; }
+.version-section:last-child { margin-bottom: 8px; }
+.version-section .section-header { margin-bottom: 12px; }
+.about-text { font-size: 13.5px; line-height: 1.75; color: var(--text-secondary); padding: 4px 2px; }
+.about-text a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.about-text a:hover { text-decoration: underline; }
+.breadcrumb {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.breadcrumb a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb .sep { color: #cbd5e1; }
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--transition);
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+}
+.card-link.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.card-link.primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: 0 3px 10px rgba(74, 108, 247, 0.3);
+}
+.card-link.ghost { background: #fff; color: var(--text-secondary); border-color: var(--border); }
+.card-link.ghost:hover { color: var(--primary); border-color: var(--primary-line); background: var(--primary-soft); }
+
+/* ========================= 08 全站顶栏 ========================= */
+.site-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 0 24px;
+    background: linear-gradient(100deg, var(--nav-bg) 0%, var(--nav-bg-2) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 2px 14px rgba(15, 23, 42, 0.18);
+}
+.site-nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+    flex: none;
+}
+.site-nav__mark {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: 8px;
+    background: var(--grad);
+    font-size: 16px;
+    box-shadow: 0 2px 10px rgba(74, 108, 247, 0.45);
+}
+.site-nav__dot { color: #a5b4fc; }
+.site-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.site-nav__links::-webkit-scrollbar { display: none; }
+.site-nav__links a {
+    color: var(--nav-fg-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: color var(--transition), background var(--transition);
+}
+.site-nav__links a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.site-nav__links a.is-active {
+    color: #fff;
+    background: rgba(122, 145, 255, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(165, 180, 252, 0.28);
+}
+.site-nav__repo {
+    margin-left: auto;
+    flex: none;
+    color: var(--nav-fg);
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 5px 12px;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+.site-nav__repo:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.4); }
+
+/* ========================= 09 全站面包屑 ========================= */
+.site-crumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+}
+.site-crumb a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.site-crumb a:hover { text-decoration: underline; }
+.site-crumb .sep { color: #cbd5e1; }
+.site-crumb .cur { color: var(--text); font-weight: 600; }
+
+/* ========================= 10 全站页脚 ========================= */
+.site-footer {
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+.site-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.site-footer a:hover { text-decoration: underline; }
+.site-footer .site-footer__links { display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* ========================= 11 首页组件 ========================= */
+.page-home .container { padding-top: 40px; }
+
+.hero { position: relative; text-align: center; padding: 12px 0 34px; overflow: hidden; }
+.hero::before {
+    content: "";
+    position: absolute;
+    top: -120px; left: 50%;
+    width: 620px; height: 320px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(122, 145, 255, 0.20), rgba(139, 92, 246, 0.06) 55%, transparent 72%);
+    pointer-events: none;
+}
+.hero__eyebrow {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-line);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 18px;
+}
+.hero h1 {
+    position: relative;
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 800;
+    letter-spacing: -1.4px;
+    line-height: 1.18;
+    background: linear-gradient(120deg, #1f2937 10%, #4a6cf7 55%, #8b5cf6 95%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.hero > p {
+    position: relative;
+    max-width: 640px;
+    margin: 14px auto 0;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+.hero__actions { position: relative; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    transition: all var(--transition);
+}
+.btn--primary { background: var(--grad); color: #fff; box-shadow: 0 4px 16px rgba(74, 108, 247, 0.28); }
+.btn--primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74, 108, 247, 0.36); }
+.btn--ghost { background: #fff; color: var(--text); border-color: var(--border); }
+.btn--ghost:hover { border-color: var(--primary-line); color: var(--primary); background: var(--primary-soft); }
+.hero__meta {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+}
+.hero__meta span {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+}
+.hero__meta span::before { content: "●"; color: var(--success); margin-right: 6px; font-size: 8px; vertical-align: 1px; }
+
+.section-title { margin: 34px 0 16px; }
+.section-title h2 { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; display: flex; align-items: center; gap: 9px; }
+.section-title h2::before {
+    content: "";
+    width: 4px; height: 18px;
+    border-radius: 3px;
+    background: var(--grad);
+}
+.section-title p { font-size: 13px; color: var(--text-secondary); margin-top: 5px; }
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+}
+.portal-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 20px 18px;
+    background: #fbfcfe;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition);
+}
+.portal-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary-line);
+    background: #fff;
+    box-shadow: 0 8px 26px rgba(74, 108, 247, 0.13);
+}
+.portal-card__icon { font-size: 28px; line-height: 1; }
+.portal-card h3 { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; }
+.portal-card p { font-size: 12.8px; line-height: 1.7; color: var(--text-secondary); flex: 1; }
+.portal-card__tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.portal-card__tags span {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-line);
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+.portal-card__go {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--primary);
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+}
+.portal-card:hover .portal-card__go { color: var(--primary-hover); }
+.portal-card.is-disabled { opacity: 0.62; background: #f8fafc; cursor: default; }
+.portal-card.is-disabled:hover { transform: none; box-shadow: none; border-color: var(--border); }
+.portal-card.is-disabled .portal-card__tags span { color: var(--text-secondary); background: #f1f5f9; border-color: var(--border); }
+.portal-card.is-disabled .portal-card__go { color: var(--text-secondary); }
+
+.site-tree {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 2;
+    color: var(--text);
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+.note-box {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-line);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+}
+.note-box .note-icon { font-size: 18px; flex: none; }
+.note-box code { background: #fff; }
+
+/* ========================= 12 404 页 ========================= */
+.error-box { text-align: center; padding: 46px 0 30px; }
+.error-box .code {
+    font-size: clamp(64px, 14vw, 110px);
+    font-weight: 800;
+    letter-spacing: -4px;
+    line-height: 1;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.error-box h1 { font-size: 22px; margin-top: 12px; font-weight: 800; }
+.error-box p { color: var(--text-secondary); font-size: 14px; margin: 10px 0 24px; }
+
+/* ========================= 13 响应式 ========================= */
+@media (max-width: 768px) {
+    body { padding: 16px 10px; }
+    .container { padding: 20px 14px; }
+    .header h1 { font-size: 22px; }
+    .site-nav { gap: 12px; padding: 0 12px; }
+    .site-nav__brand span:last-child { display: none; }
+    .site-nav__repo { display: none; }
+    .site-footer { justify-content: center; text-align: center; }
+}
+@media (max-width: 400px) {
+    .header h1 { font-size: 19px; }
+    .hero__meta { gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ===== 内联：../assets/tools.css ===== */
+/* ==========================================================================
+   tools.css · 小工具核心层（配合 base.css 使用）
+   --------------------------------------------------------------------------
+   适用：ddtparse.html / formula-style-conversion.html /
+         space-format.html / text-replace.html
+   只放 4 个小工具都用得到的东西：主区域、文本域、按钮、提示消息。
+   表单类控件在 tools-form.css（只有带选项区的工具才引）；
+   单个工具特有的样式（图例、替换列表、上传区等）已内联到对应 HTML。
+   ========================================================================== */
+
+/* 选项区容器（无选项的工具页也可用它包裹说明性区块） */
+.options-section {
+    margin-top: 4px;
+}
+
+/* ======================== 01 主区域 / 文本域 ======================== */
+.main-area {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.textarea-wrapper {
+    flex: 1 1 0;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+/* 整行独占的文本域（如“输出框”） */
+.textarea-wrapper.full-width {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 26px;
+}
+
+.textarea-wrapper label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+.textarea-wrapper label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: none;
+}
+/* 色点：输入 / 输出 / 第三类输出（可按需取用） */
+.dot.input-dot {
+    background: var(--primary);
+}
+.dot.output-dot {
+    background: var(--success);
+}
+.dot.proof-dot {
+    background: #8b5cf6;
+}
+
+.textarea-wrapper textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 280px;
+    padding: 16px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    background: #fafbfc;
+    color: var(--text);
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    tab-size: 4;
+}
+.textarea-wrapper textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+.textarea-wrapper textarea::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+.textarea-wrapper textarea[readonly] {
+    cursor: default;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* 结果输出框（绿色系）：#mainOutput 通用 / .output-area 供自定义命名使用 */
+.textarea-wrapper textarea#mainOutput,
+.textarea-wrapper textarea.output-area {
+    background: #f8faf9;
+    color: #1a3c34;
+}
+.textarea-wrapper textarea#mainOutput:focus,
+.textarea-wrapper textarea.output-area:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    background: #fff;
+}
+
+.char-count {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    opacity: 0.7;
+}
+
+/* ============================= 02 按钮 ============================= */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0 4px;
+    min-width: 150px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    white-space: nowrap;
+    background: #f3f4f6;
+    color: var(--text);
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.btn:active {
+    transform: scale(0.96);
+}
+.btn:focus-visible {
+    outline: 3px solid rgba(74, 108, 247, 0.4);
+    outline-offset: 2px;
+}
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* --- 主色（btn-convert 与 btn-primary 同款，两种命名都支持） --- */
+.btn-primary,
+.btn-convert {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.btn-primary:hover:not(:disabled),
+.btn-convert:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.35);
+}
+
+/* --- 成功色 --- */
+.btn-success {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+}
+.btn-success:hover:not(:disabled) {
+    background: var(--success-hover);
+    border-color: var(--success-hover);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+/* --- 次级 / 柔和 --- */
+.btn-secondary {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary-line);
+}
+.btn-secondary:hover:not(:disabled) {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+}
+
+.btn-soft {
+    background: #fafbfc;
+    color: var(--text);
+    border-color: var(--border);
+}
+.btn-soft:hover:not(:disabled) {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-color: var(--primary-line);
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.15);
+}
+
+/* --- 危险 / 清空 --- */
+.btn-clear {
+    background: #fef2f2;
+    color: var(--danger);
+    border-color: #fecaca;
+}
+.btn-clear:hover:not(:disabled) {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+/* --- 复制 --- */
+.btn-copy {
+    background: #ecfdf5;
+    color: var(--success);
+    border-color: #a7f3d0;
+}
+.btn-copy:hover {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+.btn-copy.copied {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+    animation: pop 0.35s ease;
+}
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+/* ========================== 03 提示消息 ========================== */
+.error-message {
+    margin-top: 18px;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid var(--danger);
+    border-radius: var(--radius-sm);
+    color: #b91c1c;
+    font-size: 13.5px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: none;
+}
+.info-message {
+    margin-top: 18px;
+    padding: 12px 16px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-left: 4px solid var(--success);
+    border-radius: var(--radius-sm);
+    color: #15803d;
+    font-size: 13.5px;
+    display: none;
+}
+
+/* ============================ 04 响应式 ============================ */
+@media (max-width: 768px) {
+    .main-area {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .textarea-wrapper {
+        min-width: 100%;
+    }
+    .textarea-wrapper textarea {
+        min-height: 170px;
+    }
+    .button-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        min-width: 100%;
+        justify-content: stretch;
+        padding: 0;
+    }
+    .button-group .btn {
+        flex: 1 1 100px;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 400px) {
+    .button-group .btn {
+        flex: 1 1 100%;
+    }
+}
+
+/* ===== 内联：../assets/tools-form.css ===== */
+/* ==========================================================================
+   tools-form.css · 小工具表单控件层（配合 base.css + tools.css 使用）
+   --------------------------------------------------------------------------
+   只有带「选项区」的小工具才需要引用：
+     ddtparse.html（模式下拉 + 证明选项复选）
+     formula-style-conversion.html（目标风格单选 + 复选）
+   space-format.html / text-replace.html 没有选项区，不引这个文件。
+   ========================================================================== */
+
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.option-row + .option-row {
+    margin-top: 14px;
+}
+
+.option-label {
+    flex: none;
+    min-width: 76px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+/* --- 下拉选择 --- */
+.option-row select {
+    flex: 1 1 240px;
+    min-width: 0;
+    padding: 11px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fafbfc;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition);
+}
+.option-row select:hover {
+    border-color: var(--primary-line);
+    background: #f5f7ff;
+}
+.option-row select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+
+/* --- 单选卡片 --- */
+.radio-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+}
+.radio-item {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fafbfc;
+    cursor: pointer;
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.radio-item:hover {
+    border-color: var(--primary-line);
+    background: #f5f7ff;
+}
+.radio-item.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.08);
+}
+.radio-item input[type="radio"] {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+.radio-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.radio-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+}
+.radio-desc {
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.radio-item.active .radio-title {
+    color: var(--primary);
+}
+
+/* --- 复选框（两种风格，按所在容器自动区分） --- */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1 1 480px;
+    min-width: 0;
+}
+
+.checkbox-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fafbfc;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+.checkbox-item:hover {
+    border-color: var(--primary-line);
+    background: #f5f7ff;
+}
+.checkbox-item input[type="checkbox"] {
+    flex: none;
+    cursor: pointer;
+}
+/* 选中态：:has() 自动识别 / .checked 由脚本切换，两种都支持 */
+.checkbox-item:has(input:checked),
+.checkbox-item.checked {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+}
+.checkbox-item:has(input:checked) {
+    color: var(--primary);
+}
+.checkbox-item.checked {
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.08);
+}
+.checkbox-item em {
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* 紧凑胶囊式（.checkbox-group 内）：自绘方框 */
+.checkbox-group .checkbox-item {
+    gap: 8px;
+    padding: 9px 14px;
+}
+.checkbox-group .checkbox-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fff;
+    position: relative;
+    transition: all var(--transition);
+}
+.checkbox-group .checkbox-item input[type="checkbox"]:checked {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+.checkbox-group .checkbox-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.checkbox-group .checkbox-item input[type="checkbox"]:focus-visible {
+    outline: 3px solid rgba(74, 108, 247, 0.35);
+    outline-offset: 2px;
+}
+
+/* 整行铺开式（.option-row 直挂）：浏览器原生方框 */
+.option-row > .checkbox-item {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+.option-row > .checkbox-item input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--primary);
+}
+
+/* ============================ 响应式 ============================ */
+@media (max-width: 768px) {
+    .option-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .option-label {
+        min-width: 0;
+    }
+    .radio-group {
+        flex-direction: column;
+    }
+    .radio-item {
+        flex: 1 1 auto;
+    }
+    .option-row > .checkbox-item {
+        align-items: flex-start;
+    }
+    .checkbox-group {
+        flex-direction: column;
+        align-items: stretch;
+        flex: 1 1 auto;
+    }
+    .checkbox-group .checkbox-item {
+        width: 100%;
+    }
+}
+
+/* ===== 内联：本页专属样式 ===== */
+/* ===== 本页专属：文件上传区 + 尺寸微调 ===== */
+.main-area { margin-bottom: 20px; }
+.divider { margin: 22px 0 26px; }
+.textarea-wrapper textarea { min-height: 240px; font-size: 13.5px; }
+.textarea-wrapper textarea.output-area { min-height: 200px; }
+/* 按钮较多，横向排布 */
+.button-group { flex-direction: row; flex-wrap: wrap; min-width: 0; padding: 0; }
+.button-group .btn { flex: 1 1 160px; padding: 13px 20px; }
+
+/* 文件上传区（仅本页使用） */
+.file-zone {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin-bottom: 26px;
+}
+.file-upload-label {
+    flex: 1 1 260px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 24px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 2px dashed var(--primary-line);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.file-upload-label:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    border-style: solid;
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+}
+.file-upload-label:active { transform: scale(0.98); }
+.file-upload-label input[type="file"] { display: none; }
+
+@media (max-width: 768px) {
+    .file-zone { flex-direction: column; }
+    .button-group .btn { flex: 1 1 100%; }
+    .rule-search-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ===== 本页专属：推理规则搜索 ===== */
+.rule-search-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+}
+.rule-search-wrap {
+    position: relative;
+    flex: 1 1 260px;
+    min-width: 0;
+}
+#ruleSearchInput {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fafbfc;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: all var(--transition);
+}
+#ruleSearchInput:hover {
+    border-color: var(--primary-line);
+    background: #f5f7ff;
+}
+#ruleSearchInput:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+#ruleSearchInput::placeholder {
+    font-family: inherit;
+    color: #9ca3af;
+    font-style: italic;
+    font-weight: 400;
+}
+/* 联想块：绝对定位在输入框下方，超高出现滚动条 */
+.rule-search-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    display: none;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+}
+.rule-search-box div {
+    padding: 9px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background var(--transition), color var(--transition);
+}
+.rule-search-box div:hover,
+.rule-search-box div.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+.rule-search-box b {
+    color: var(--primary);
+    font-weight: 700;
+}
+.rule-search-box .rule-search-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    cursor: default;
+}
+.rule-search-box .rule-search-empty:hover {
+    background: none;
+    color: var(--text-secondary);
+}
+
+/* D2 编码时 mode 不一致的告警信息 */
+.info-message.warn {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    border-left-color: #ef6c00;
+    color: #e65100;
+}
+
+    
+
+    </style>
+</head>
+<body class="page-ddtparse">
+
+    <div class="container">
+
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔧</span> 进度文档解码 / 编码器
+            </h1>
+            <p>上传游戏进度文件，解码为可读文本 · 修改后重新编码并下载</p>
+        </div>
+
+        <!-- 游戏版本 -->
+        <div class="option-row">
+            <span class="option-label">游戏版本</span>
+            <select id="versionSelect">
+                <option value="ddt1" selected>Deductrium</option>
+                <option value="ddt2">Deductrium 2.0</option>
+            </select>
+            <span class="hint">💡 Deductrium 2.0 使用 LZString + JSON 进度格式</span>
+        </div>
+
+        <!-- 游戏模式 -->
+        <div class="option-row">
+            <span class="option-label">游戏模式</span>
+            <select id="modeSelect">
+                <option value="survival" selected>生存模式 (survival)</option>
+                <option value="creative">创造模式 (creative)</option>
+            </select>
+            <span class="hint">💡 编码 / 解码需使用相同的模式</span>
+        </div>
+
+        <!-- ★ 新增：证明项 / 排列表 选项 -->
+        <div class="option-row">
+            <span class="option-label">证明选项</span>
+            <div class="checkbox-group" id="proofOptionGroup">
+                <label class="checkbox-item" title="编码/提取证明项时，附带用户自定义的推理规则（mc, mf, mprd）">
+                    <input type="checkbox" id="chkCustomRules" checked>
+                    <span>在证明项中加入自定义推理规则</span>
+                </label>
+                <label class="checkbox-item" title="生成排列表时，在名称后加入定理内容显示">
+                    <input type="checkbox" id="chkContentDisplay" checked>
+                    <span>在排列表中加入定理内容显示</span>
+                </label>
+                <label class="checkbox-item" title="编码/提取证明项时，显示该推理规则依赖的推理规则">
+                    <input type="checkbox" id="chkDependentRules" checked>
+                    <span>在证明项中加入依赖推理规则</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="option-row">
+            <span class="option-label"></span>
+            <span class="hint">⚠ 选择 Deductrium 2.0 后，提取证明项 / 类型层证明项 / 展示排列表 / 规则搜索 均不适用</span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 文件操作区 -->
+        <div class="file-zone">
+            <label class="file-upload-label">
+                📂 上传进度文档文件
+                <input type="file" id="fileInput" accept=".txt,.json,.dat,.dt,text/plain,application/json,application/octet-stream">
+            </label>
+            <button id="btnDownload" class="btn btn-success" disabled>⬇️ 下载编码结果</button>
+        </div>
+
+        <!-- ★ 新增：推理规则搜索 -->
+        <div class="rule-search-row">
+            <span class="option-label">规则搜索</span>
+            <div class="rule-search-wrap">
+                <input id="ruleSearchInput" type="text" placeholder="输入推理规则名称…"
+                       autocomplete="off" spellcheck="false">
+                <div id="ruleSearchBox" class="rule-search-box"></div>
+            </div>
+            <button id="btnSearchRule" class="btn btn-soft">🔍 搜索</button>
+        </div>
+
+        <!-- 主区域：编码文档 / 解码文本 -->
+        <div class="main-area">
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 编码文档（进度字符串）</label>
+                <textarea id="encodedText" placeholder="将编码进度文档粘贴到这里，或上传文件自动填充..." spellcheck="false"></textarea>
+            </div>
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 解码后的文本（可编辑）</label>
+                <textarea id="jsonText" placeholder="点击“解码”按钮生成解码文本，可修改后重新编码..." spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- 输出框 -->
+        <div class="textarea-wrapper full-width">
+            <label><span class="dot proof-dot"></span> 输出框（证明项 / 类型层证明项 / 排列表）</label>
+            <textarea id="proofText" class="output-area" placeholder="点击下方按钮生成对应内容..." readonly spellcheck="false"></textarea>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button id="btnDecode" class="btn btn-primary">🔓 解码 → 文本</button>
+            <button id="btnEncode" class="btn btn-secondary">🔒 编码 → 进度文档</button>
+            <button id="btnExtractProofs" class="btn btn-soft">📜 提取证明项</button>
+            <button id="btnExtractTypeProofs" class="btn btn-soft">🧩 提取类型层证明项</button>
+            <button id="btnShowArrangement" class="btn btn-soft">🌳 展示排列表</button>
+            <button id="btnClear" class="btn btn-clear">🧹 清空</button>
+        </div>
+
+        <!-- 错误 / 信息显示 -->
+        <div id="errorMsg" class="error-message"></div>
+        <div id="infoMsg" class="info-message"></div>
+
+        <div class="footer">
+            基于游戏内部序列化逻辑 | 不依赖游戏环境
+        </div>
+    </div>
+
+    <script>
+
+/* ===== 内联：ddtparse-data.js ===== */
+// [ddtparse-module] ddtparse-data.js | 静态数据：定理内容字典、推理规则分类表
 /* ========== 排列表：定理内容解析 ========== */
 
 // 硬编码的名称 → 定理内容字典
@@ -354,6 +1692,8 @@ const CATEGORY_ORDER = [];
     }
 })();
 
+/* ===== 内联：ddtparse-lzstring.js ===== */
+// [ddtparse-module] ddtparse-lzstring.js | LZString 压缩库与 Deductrium 2.0 进度格式支持
 // ==================== Deductrium 2.0 支持 ====================
 
 /* ============================================================
@@ -676,6 +2016,8 @@ function requireDdt1(featureName) {
     return true;
 }
 
+/* ===== 内联：ddtparse-codec.js ===== */
+// [ddtparse-module] ddtparse-codec.js | 名称映射表、随机数、洗牌与核心编解码
 // ==================== 基础映射表（与游戏一致） ====================
 
 const splittor = "-(=)-";
@@ -806,6 +2148,8 @@ function decodeProgressDoc(encodedStr, mode = 'survival') {
     return result;
 }
 
+/* ===== 内联：ddtparse-ui.js ===== */
+// [ddtparse-module] ddtparse-ui.js | DOM 引用、消息提示与证明选项状态
 // ==================== DOM 交互逻辑 ====================
 
 const encodedTextarea = document.getElementById('encodedText');
@@ -894,6 +2238,8 @@ function onProofOptionChange(key, checked) {
     if (typeof clearMessages === 'function') clearMessages();
 }
 
+/* ===== 内联：ddtparse-analysis.js ===== */
+// [ddtparse-module] ddtparse-analysis.js | 解码文本分段、证明项 / 类型层证明项 / 排列表分析
 // ==================== 解码结果分段 ====================
 
 /*
@@ -1414,6 +2760,8 @@ function renderTree(nodes, prefix = '') {
     return out;
 }
 
+/* ===== 内联：ddtparse-app.js ===== */
+// [ddtparse-module] ddtparse-app.js | 文件与按钮动作、规则搜索、事件绑定与初始化
 // ==================== 文件上传 ====================
 fileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
@@ -1892,3 +3240,29 @@ versionSelect.addEventListener('change', function () {
 initProofOptions();
 btnDownload.disabled = true;
 clearMessages();
+
+    </script>
+</body>
+
+<!--
+更新日志
+
+项目：进度文档解码 / 编码器（ddtparse）
+
+版本历史：
+- v1: ddtparse.html：存档编码-解码功能
+- v2: ddtparse_new.html：加入证明项提取功能
+- v2.1: 修复带有临时变量的证明项不会被提取的问题
+- v2.2: 修复假设中的有序对被错误切分的问题
+- v3: ddtparse_completely.html：加入类型层证明项提取与排列表显示
+- v3.1: ddtparse_completely_fixed.html：增加谓词、函数、常量定义的证明项提取显示；重制并优化页面风格
+- v4: 加入选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则
+- v4.1: 修复 mcmt 中的 # 会被识别为依赖推理规则的问题
+- v4.2: 修复名称映射表、修改依赖推理规则提取
+- v4.3: 重制页面 css
+- v5: 增加搜索推理规则并递归搜索依赖推理规则
+- v6: 增加对 Deductrium 2 的支持
+- v6.1: 重构：将单文件脚本拆分为多个模块，功能不变；历史版本由构建脚本自动打包生成
+-->
+
+</html>
