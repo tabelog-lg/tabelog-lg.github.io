@@ -58,11 +58,6 @@ a{color:var(--link)}
 .toc-item.indent-1{padding-left:24px}.toc-item.indent-2{padding-left:34px}.toc-item.indent-3{padding-left:44px}.toc-item.indent-4{padding-left:54px}.toc-item.indent-5{padding-left:64px}
 .toc-folder{font-size:12px;font-weight:700;color:#5b533f;padding-top:5px}.folder-icon{color:#9a8a5e;font-weight:400}
 .toc-children{border-left:1px dotted #c9c2ae;margin-left:18px}
-.toc-details{margin:2px 0;border-bottom:1px solid #eee}
-.toc-details>summary{cursor:pointer;font-size:12px;font-weight:600;padding:5px 12px;color:#4a4232;list-style:none}
-.toc-details>summary::-webkit-details-marker{display:none}
-.toc-details>summary::before{content:"▸ ";color:#8a7f64}.toc-details[open]>summary::before{content:"▾ "}
-.toc-details .cnt{color:#928a78;font-weight:400;font-size:11px}
 .toc-empty,.empty-state{color:var(--muted);padding:26px 18px;text-align:center}.empty-state h2{color:var(--navy);margin-top:0}
 .computing{text-align:center;padding:80px 20px;color:#4a463b}
 .computing h2{font-family:Georgia,serif;color:var(--navy);font-size:20px;margin:14px 0 6px}
@@ -89,6 +84,8 @@ a{color:var(--link)}
 .page-info-body{padding:4px 10px 8px;border-top:1px solid #d5e6d2;background:#f7fcf6}
 .page-info-body .engine-note{border:none;background:transparent;padding:2px 0;margin:0}
 .page-info-body .badges{margin:6px 0 0}
+.page-info-body .sequent-note{font-size:11.5px;color:#4a6b4d;margin:6px 0 0;line-height:1.5;overflow-wrap:anywhere}
+.page-info-body .sequent-note .formula{font-size:13px}
 .engine-note{border:1px solid #c9dcc6;background:#f2faf1;color:#2d5a33;font-size:12px;padding:6px 10px;border-radius:3px;margin:6px 0 2px;line-height:1.45}
 .engine-tag{display:inline-block;background:#2e7d32;color:#fff;font-weight:700;font-size:11px;padding:1px 7px;border-radius:3px;margin-right:6px}
 .engine-note code{background:#e2f0e0;color:#1f5126}
@@ -138,6 +135,12 @@ a{color:var(--link)}
 .formula wbr{display:inline}
 .f-wff{color:var(--wff);font-style:italic;font-weight:600}.f-set{color:var(--set);font-style:italic}
 .f-class{color:var(--class)}.f-op{color:var(--op);font-weight:700}.f-plain{color:#33302a}
+.f-bar{color:#7a5210;font-weight:700;padding:0 2px}
+/* 对齐游戏 gui.css：.fn blueviolet / .verb #a60 / .sysfn darkblue / .constant blue */
+.f-fn{color:#7a2fbe;font-weight:600}
+.f-verb{color:#a6600a;font-weight:600}
+.f-sysfn{color:#1b3a6b;font-weight:600}
+.f-const{color:#1a4fa0}
 .mm-legend{margin-top:18px;border-top:1px solid var(--line-soft);padding-top:8px}
 .mm-legend h3{font-size:13px;font-family:Georgia,serif;margin:0 0 6px;color:#4c4636}
 .legend-row{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;margin-bottom:6px}
@@ -5655,8 +5658,16 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
             catch (e) { warnings.push('规则 ' + k + ' 载入失败：' + e); }
         }
         fs.propositions = [];
+        // 存档第三部分前三项 = 常量 / 函数 / 谓词定义表。
+        // 游戏 gui.js 的 ast2HTML 用 fs.fns / fs.verbs 给函数名染 .fn / .verb，
+        // # 开头系统函数染 .sysfn；这里单独存一份存档表，供公式着色按类别区分颜色。
+        const symbolTables = {
+            consts: new Set((arrC || []).map(str)),
+            fns: new Set((arrFn || []).map(str)),
+            verbs: new Set((arrVb || []).map(str))
+        };
         return {
-            fs, ap, sp, initialNames, metaruleCount,
+            fs, ap, sp, initialNames, metaruleCount, symbolTables,
             arrD: arrD || [], arrP: arrP || [], arrM: arrM || [],
             dictD: dictD || {}, loaded
         };
@@ -5851,6 +5862,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         const dec = decodeV1(rawEncoded, mode);
         const sys = buildSystem(dec, warnings);
         const { fs, ap } = sys;
+        setActiveSymbols(sys.symbolTables);   // 随后的公式着色按本存档的函数 / 谓词 / 常量表分类
 
         const dictKeys = Object.keys(sys.dictD);
         const savedNames = dictKeys.filter(n => !n.startsWith(':'));   // 玩家自己命名保存的真实规则
@@ -5919,7 +5931,8 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         if (id === 'table') {
             const table = replayTable(R.sys, warnings);
             return Object.assign({}, meta, {
-                assertion: '⊢' + table.conclusion,
+                // Assertion 只放结论；假设已在 Hypotheses 区域单列，不再重复前提、也不带 ⊢
+                assertion: table.conclusion,
                 hypotheses: table.hyps.map(h => ({ ref: h.ref, expression: h.expression })),
                 proof: table.steps.map(s => ({
                     step: s.step, hyp: s.hyp, hypRefs: s.hypRefs, ref: s.ref, vars: s.vars,
@@ -5940,12 +5953,13 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         const name = meta.label;
         const info = staticInfo(fs, ap, name);
         if (!info) return Object.assign({}, meta, {
-            sequent: '', assertion: '⊢', hypotheses: [], proof: [], warnings
+            sequent: '', assertion: '', hypotheses: [], proof: [], warnings
         });
         const replay = info.d ? replayMacro(fs, ap, name, info.d, warnings) : null;
         return Object.assign({}, meta, {
             sequent: info.sequent,
-            assertion: info.conditions.length ? info.sequent : '⊢' + info.conclusion,
+            // 无论有没有条件，Assertion 都只显示结论；条件由 Hypotheses 表承载
+            assertion: info.conclusion,
             hypotheses: info.conditions.map((c, i) => ({ ref: 'H' + (i + 1), expression: c })),
             proof: replay ? replay.rows.map(r => ({
                 step: r.step, hyp: r.hyp, hypRefs: r.hypRefs, ref: r.ref, vars: r.vars,
@@ -5968,25 +5982,129 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
     }
 
     // ---------------- 9. 公式着色 ----------------
-    const DISPLAY_MULTI = [
-        ['omega', 'ω', 'class'], ['E!', '∃!', 'op'], ['<=', '≤', 'op'], ['>=', '≥', 'op'],
-        ['<>', '↔', 'op'], ['/|', '∣', 'op'], ['->', '→', 'op'],
-        ['Union', 'Union', 'class'], ['Pow', 'Pow', 'class'], ['Prime', 'Prime', 'class'],
-        ['Rel', 'Rel', 'class'], ['Equiv', 'Equiv', 'class'], ['Order', 'Order', 'class'],
-        ['WellOrder', 'WellOrder', 'class'], ['DdkCut', 'DdkCut', 'class'],
-        ['Pr1', 'Pr1', 'class'], ['Pr2', 'Pr2', 'class'], ['#nf', '#nf', 'class'], ['#rp', '#rp', 'class'],
-        ['{}', '∅', 'class']
+    // 存档第三部分的前三项：[[常量表],[函数表],[谓词表],...]。
+    // 游戏 gui.js ast2HTML：fn 节点按 fs.fns / fs.verbs 加 .fn / .verb，
+    // # 开头系统函数加 .sysfn，常量 replvar 加 .constant。
+    const EMPTY_SYMBOLS = { consts: new Set(), fns: new Set(), verbs: new Set() };
+    let ACTIVE_SYMBOLS = EMPTY_SYMBOLS;
+    let MULTI_CACHE_KEY = null, MULTI_CACHE = null;
+
+    function setActiveSymbols(syms) {
+        ACTIVE_SYMBOLS = syms && syms.consts && syms.fns && syms.verbs
+            ? syms : EMPTY_SYMBOLS;
+        MULTI_CACHE_KEY = null; MULTI_CACHE = null;
+    }
+    function getActiveSymbols() { return ACTIVE_SYMBOLS; }
+
+    // 固定的多字符符号：运算符、常量显示，以及游戏内置函数 / 谓词的兜底。
+    // 存档表里同名时动态表会跳过（used 去重），这里保证精简存档也不会拆开 Equiv / Union。
+    const BASE_MULTI = [
+        ['<=', '≤', 'op'], ['>=', '≥', 'op'], ['<>', '↔', 'op'],
+        ['/|', '∣', 'op'], ['->', '→', 'op'],
+        ['WellOrder', 'WellOrder', 'verb'], ['Between', 'Between', 'verb'],
+        ['DdkCut', 'DdkCut', 'verb'], ['Equiv', 'Equiv', 'verb'],
+        ['Order', 'Order', 'verb'], ['Prime', 'Prime', 'verb'],
+        ['Point', 'Point', 'verb'], ['Plane', 'Plane', 'verb'],
+        ['Angle', 'Angle', 'verb'], ['Line', 'Line', 'verb'],
+        ['Union', 'Union', 'fn'], ['Pow', 'Pow', 'fn'],
+        ['Pr1', 'Pr1', 'fn'], ['Pr2', 'Pr2', 'fn'], ['Rel', 'Rel', 'verb'],
+        ['omega', 'ω', 'const'], ['{}', '∅', 'const']
     ];
+
+    // 从当前存档的符号表生成「多字符标识符」优先匹配表。
+    // 必要性：Union / Equiv 等名字里含 U / I / X / E 这类 symChar 单字母符号，
+    // 若不整体匹配，会被 SYM_SINGLE 拆成 U + nion。长名优先，避免 omega 抢 omega2_func。
+    function buildMulti(syms) {
+        const used = new Set(BASE_MULTI.map(e => e[0]));
+        const dyn = [];
+        for (const [table, cls] of [[syms.fns, 'fn'], [syms.verbs, 'verb'], [syms.consts, 'const']]) {
+            for (const raw of table) {
+                const n = String(raw);
+                if (n.length < 2 || used.has(n)) continue;
+                used.add(n);
+                const display = (n === '{}') ? '∅' : (n === 'omega' ? 'ω' : n);
+                dyn.push([n, display, cls]);
+            }
+        }
+        return dyn.concat(BASE_MULTI).sort((a, b) => b[0].length - a[0].length);
+    }
+    function activeMulti(syms) {
+        if (MULTI_CACHE_KEY === syms && MULTI_CACHE) return MULTI_CACHE;
+        MULTI_CACHE_KEY = syms; MULTI_CACHE = buildMulti(syms);
+        return MULTI_CACHE;
+    }
+
+    // 单个标识符的着色类别：# 开头=系统函数，函数名/谓词名按存档表，常量按常量表，其余普通变量。
+    function wordClass(w, syms, followedByParen) {
+        if (syms.fns.has(w) || syms.verbs.has(w)) {
+            // Z / Q 等同时在常量表和函数表里：作为函数调用时算函数，单独出现时算常量
+            if (!followedByParen && syms.consts.has(w)) return 'const';
+            return syms.fns.has(w) ? 'fn' : 'verb';
+        }
+        if (syms.consts.has(w)) return 'const';
+        return /^[A-Z]/.test(w) ? 'class' : 'set';
+    }
     const DISPLAY_SINGLE = {
         '>': '→', '<': '⊂', '~': '¬', '&': '∧', '|': '∨', '@': '∈', '=': '=',
-        'V': '∀', 'E': '∃', 'U': '∪', 'I': '∩', 'X': '×', '*': '×', '/': '÷',
+        'U': '∪', 'I': '∩', 'X': '×', '*': '×', '/': '÷',
         '-': '−', '+': '+', '⊢': '⊢', '!': '!', '\\': '\\'
     };
     const OP_SET = new Set(Object.keys(DISPLAY_SINGLE));
 
-    function formatFormulaTokens(raw) {
+    // 游戏 ASTParser.symChar = "VEMUIX()@~^<>|&=,;:[]!⊢+-*/{}\\"
+    // tokenise() 的规则：属于 symChar 的字符（和空格）是分隔符，其余字符一律累积进一个 word。
+    // 所以变量名「理论上支持所有不会被解析的字符」——λ、ℋ、ℕ、α、汉字、
+    // ?、.、_、数字、$、# 都可以是变量名的一部分。旧版只认 [A-Za-z0-9_]，
+    // 遇到 λ / ℋ 就逐字符掉进 plain，还会把相邻括号、量词一起吞成一大段，着色全丢。
+    const SYM_CHAR_SET = new Set(Array.from('VEMUIX()@~^<>|&=,;:[]!⊢+-*/{}\\'));
+    const SYM_SINGLE = new Set(['V', 'E', 'M', 'U', 'I', 'X']);   // 其中 6 个大写字母要显示成符号
+    const isWordChar = c => !!c && !SYM_CHAR_SET.has(c) && !/\s/.test(c);
+
+    // 量词：ASTParser.stringifyTight() 输出 (V<var>:body)、(E<var>:body)、(E!<var>:body)。
+    // 绑定变量可以是任意合法 word（λ、ℋ、ℕ…）、大小写字母、$ 替换变量；
+    // 游戏 ASTParser.boundedVar() 还允许 # 开头的系统函数调用，
+    // 如 (V#nf($0,$2):...)、(V##?:...)、(E!#nf($1,$2):...)。
+    // 只有「量词 + 变量 + :」才算量词，避免误拆 Equiv / Pow / VF(...)。
+    function quantifierAt(s, i) {
+        const c = s[i];
+        if (c !== 'V' && c !== 'E') return null;
+        const bang = (c === 'E' && s[i + 1] === '!');
+        const j = i + (bang ? 2 : 1);
+        if (j >= s.length || !isWordChar(s[j])) return null;
+        let end = -1;
+        if (s[j] === '#') {
+            // 先试「#系统函数(参数...)」形式：括号要配对，之后必须紧跟 ':'
+            let k = j + 1;
+            while (k < s.length && isWordChar(s[k])) k++;
+            if (s[k] === '(') {
+                let depth = 0;
+                for (; k < s.length; k++) {
+                    if (s[k] === '(') depth++;
+                    else if (s[k] === ')') { depth--; if (!depth) { k++; break; } }
+                }
+                if (depth === 0 && s[k] === ':') end = k;
+            }
+            // 再退回「#简单变量」形式，如 ##? / #x / #λ
+            if (end < 0) {
+                let k2 = j + 1;
+                while (k2 < s.length && isWordChar(s[k2])) k2++;
+                if (s[k2] === ':') end = k2;
+            }
+        } else {
+            let k = j;
+            while (k < s.length && isWordChar(s[k])) k++;
+            if (s[k] === ':') end = k;
+        }
+        if (end < 0) return null;
+        return bang ? { display: '∃!', len: 2 } : { display: c === 'V' ? '∀' : '∃', len: 1 };
+    }
+
+    function formatFormulaTokens(raw, syms) {
+        const S = syms || ACTIVE_SYMBOLS;
+        const MULTI = activeMulti(S);
         const s = str(raw), out = [];
-        let i = 0;
+        let i = 0, parenDepth = 0;
+        const braces = [];   // 每层 {} 的状态：用于认出集合构造 { term@set | pred } 的分隔竖线
         const push = (text, display, cls) => {
             if (!text) return;
             const last = out[out.length - 1];
@@ -5995,47 +6113,73 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         };
         while (i < s.length) {
             let matched = false;
-            for (const [from, to, cls] of DISPLAY_MULTI) {
+            for (const [from, to, cls] of MULTI) {
                 if (s.startsWith(from, i)) {
                     const next = s[i + from.length];
-                    if (next && /[A-Za-z0-9_]/.test(next) && /^[A-Za-z#]/.test(from)) continue;
+                    // 后面还接着合法 word 字符 → 这是更长的变量名，不是关键字
+                    if (next && isWordChar(next) && /^[A-Za-z#]/.test(from)) continue;
                     push(from, to, cls); i += from.length; matched = true; break;
                 }
             }
-            if (matched) continue;
+            if (matched) continue;              // 含 {} → ∅，不入花括号栈
+
             const c = s[i];
-            if ((c === 'V' || c === 'E') && i + 1 < s.length && /[a-z$]/.test(s[i + 1])) {
-                push(c, DISPLAY_SINGLE[c], 'op'); i++; continue;
+            // 量词（V / E / E!，变量可大写）
+            const q = quantifierAt(s, i);
+            if (q) { push(s.slice(i, i + q.len), q.display, 'op'); i += q.len; continue; }
+
+            // 单字母符号：U→∪ I→∩ X→×，V/E/M 保持原字符；一律只吃 1 个字符
+            if (SYM_SINGLE.has(c)) {
+                if (OP_SET.has(c)) push(c, DISPLAY_SINGLE[c], 'op');
+                else push(c, c, 'plain');
+                i++; continue;
             }
+
+            // 括号与花括号：记录嵌套深度，区分集合构造竖线与逻辑或
+            if (c === '(') { parenDepth++; push(c, c, 'plain'); i++; continue; }
+            if (c === ')') { parenDepth = Math.max(0, parenDepth - 1); push(c, c, 'plain'); i++; continue; }
+            if (c === '{') { push(c, c, 'plain'); braces.push({ paren: parenDepth, seenBar: false }); i++; continue; }
+            if (c === '}') { braces.pop(); push(c, c, 'plain'); i++; continue; }
+            if (c === '|') {
+                const top = braces[braces.length - 1];
+                if (top && !top.seenBar && parenDepth === top.paren) {
+                    top.seenBar = true;
+                    push(c, c, 'bar');          // {| } / |} 的分隔竖线：原样保留，不转成 ∨
+                } else {
+                    push(c, DISPLAY_SINGLE['|'], 'op');   // 真正的逻辑或
+                }
+                i++; continue;
+            }
+
             if (c === '$' || c === '#') {
                 let j = i + 1;
-                while (j < s.length && /[A-Za-z0-9_]/.test(s[j])) j++;
-                push(s.slice(i, j), s.slice(i, j), c === '$' ? 'wff' : 'set'); i = j; continue;
+                while (j < s.length && isWordChar(s[j])) j++;
+                const w = s.slice(i, j);
+                // # 开头 = 游戏系统函数 / 局部变量（#nf、#rp、#vnf、##x、#λ…）
+                push(w, w, c === '$' ? 'wff' : 'sysfn'); i = j; continue;
             }
-            if (/[A-Za-z_]/.test(c)) {
+            // 任意「不会被解析」的字符都能组成变量名：ASCII 字母、数字、_、
+            // λ / ℋ / ℕ / α / 汉字 / ? / . …，统一扫成一个 token。
+            if (isWordChar(c)) {
                 let j = i + 1;
-                while (j < s.length && /[A-Za-z0-9_]/.test(s[j])) j++;
+                while (j < s.length && isWordChar(s[j])) j++;
                 const w = s.slice(i, j);
                 if (w.length === 1 && OP_SET.has(w)) push(w, DISPLAY_SINGLE[w], 'op');
-                else if (/^[A-Z]/.test(w) || /^[0-9]+$/.test(w)) push(w, w, 'class');
-                else push(w, w, 'set');
+                else if (/^[0-9]/.test(w)) push(w, w, 'class');
+                else push(w, w, wordClass(w, S, s[j] === '('));
                 i = j; continue;
-            }
-            if (/[0-9]/.test(c)) {
-                let j = i + 1;
-                while (j < s.length && /[0-9.]/.test(s[j])) j++;
-                push(s.slice(i, j), s.slice(i, j), 'class'); i = j; continue;
             }
             if (OP_SET.has(c)) { push(c, DISPLAY_SINGLE[c], 'op'); i++; continue; }
             push(c, c, 'plain'); i++;
         }
         return out;
     }
-    const formulaPlain = raw => formatFormulaTokens(raw).map(t => t.display).join('');
+    const formulaPlain = (raw, syms) => formatFormulaTokens(raw, syms).map(t => t.display).join('');
 
     const API = {
         load, computePage, decodeV1, buildSystem, replayTable, replayMacro,
-        staticInfo, arrangementTree, treeNames, formatFormulaTokens, formulaPlain,
+        staticInfo, arrangementTree, treeNames,
+        formatFormulaTokens, formulaPlain, setActiveSymbols, getActiveSymbols,
         CATMAP, CATORder, DICT
     };
     root.ProofEngine = API;
@@ -6197,16 +6341,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         if (saved.length) html += '<div class="toc-group"><div class="toc-group-title">存档中的推理规则（' + saved.length + '）</div>'
             + saved.map(p => tocItem(p.id, p.label, E.formulaPlain(p.sequent || ''))).join('') + '</div>';
 
-        const builtin = state.pages.filter(p => p.type === 'rule' && !p.isSaved && !inTree.has(p.label));
-        const cats = E.CATORder.concat(['未分类']);
-        for (const cat of cats) {
-            const list = builtin.filter(p => (E.CATMAP.get(p.label) || '未分类') === cat
-                && (!f || (p.label + ' ' + (p.sequent || '')).toLowerCase().includes(f)));
-            if (!list.length) continue;
-            html += '<details class="toc-details"' + (f ? ' open' : '') + '><summary>' + esc(cat)
-                + ' <span class="cnt">' + list.length + '</span></summary>'
-                + list.map(p => tocItem(p.id, p.label, E.formulaPlain(p.sequent || ''))).join('') + '</details>';
-        }
+        // 目录只展示本存档排列表里实际有的内容（+ 当前定理表 + 存档命名规则）。
+        // 不再按内置分类补出一堆「存档里没有、但游戏初始系统里存在」的规则分组：
+        // 生存模式下这些规则本来就没有，列出来会误导。
+        // 内置规则页仍保留在 pageMap 中，可通过 Proof 表里的 Ref 链接或 URL hash 打开。
 
         box.innerHTML = html || '<div class="toc-empty">没有匹配的条目</div>';
         state.tocOrder = Array.from(new Set($$('.toc-item', box).map(a => a.dataset.page).filter(Boolean)));
@@ -6319,6 +6457,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
             + '组合元 / 元规则生成的规则不算真实定理，不设独立定理页；Hyp 列的相对负数已换算成对应 Step 数字。'
             + '✓ = 该步由引擎计算。</div>'
             + metaBadges(p.meta)
+            + (p.sequent && p.sequent !== p.assertion
+                ? '<p class="sequent-note">完整 sequent（游戏写法，含前提与 ⊢）：<span class="formula">'
+                  + formulaHTML(p.sequent) + '</span></p>'
+                : '')
             + '</div></details>';
 
         h += '<section class="mm-section"><h2>Hypotheses</h2>';
@@ -6332,15 +6474,15 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
         h += '</section>';
 
         h += '<section class="mm-section"><h2>Assertion</h2>'
+            + '<p class="mm-note">仅显示结论公式；前提条件见上方 Hypotheses 区域，此处不重复、也不带判定符号。</p>'
             + mmTable('Assertion of ' + label, ['Ref', 'Expression'], [{
                 attrs: ' class="assertion-row"',
                 cells: ['<span class="hyp-label">' + label + '</span>',
-                    '<span class="formula">' + formulaHTML(p.assertion) + '</span>'
+                    (p.assertion
+                        ? '<span class="formula">' + formulaHTML(p.assertion) + '</span>'
+                        : '<span class="dim">（当前定理表为空，无结论）</span>')
                     + '<button class="copy-btn" data-copy="' + esc(E.formulaPlain(p.assertion)) + '">复制</button>']
             }], 'assertion');
-        if (p.sequent && p.sequent !== p.assertion) {
-            h += '<p class="mm-note">完整 sequent（游戏写法）：<span class="formula">' + formulaHTML(p.sequent) + '</span></p>';
-        }
         h += '</section>';
 
         h += '<section class="mm-section"><h2>Proof</h2>';
@@ -6367,10 +6509,19 @@ if (typeof module !== "undefined" && module.exports) module.exports = __DDT__;
             + warns.map(w => '<li>' + esc(w) + '</li>').join('') + '</ul></section>';
 
         h += '<section class="mm-legend"><h3>Colors of variables</h3>'
-            + '<div class="legend-row"><span class="f-wff">$0  wff</span> <span class="f-set">x  set</span> '
-            + '<span class="f-class">N  class</span> <span class="f-op">→ ¬ ∧ ∨ ↔ ⊢ ∈ ∀ ∃  operators</span></div>'
+            + '<div class="legend-row">'
+            + '<span class="f-wff">$0 替换变量</span> <span class="f-set">x 普通变量</span> '
+            + '<span class="f-fn">Union 函数</span> <span class="f-verb">Equiv 谓词</span> '
+            + '<span class="f-sysfn">#nf 系统函数</span> <span class="f-const">omega 常量</span> '
+            + '<span class="f-op">→ ¬ ∧ ∨ ↔ ⊢ ∈ ∀ ∃ ∪ ∩ ×  operators</span></div>'
             + '<p class="legend-note">符号沿用游戏显示方式：<code>&gt;→</code> <code>~¬</code> <code>&amp;∧</code> '
-            + '<code>|∨</code> <code>&lt;&gt;↔</code> <code>@∈</code> <code>V∀</code> <code>E∃</code>。'
+            + '<code>|∨</code> <code>&lt;&gt;↔</code> <code>@∈</code> <code>U∪</code> <code>I∩</code> <code>X×</code> '
+            + '<code>V…:∀</code> <code>E…:∃</code> <code>E!…:∃!</code>。'
+            + '<code>U I X V E M</code> 是游戏的单字符符号，不与相邻变量 / 标识符合并；'
+            + '函数 / 谓词 / 常量按存档第三部分的三张定义表着色，<code>#</code> 开头为系统函数；'
+            + '量词绑定变量大小写均支持，也支持 <code>V#nf(…):</code> 这类系统函数写法；'
+            + '集合构造 <code>{项@集合|条件}</code> 中的 <code>|</code> 保留为分隔竖线，'
+            + '只有逻辑或才显示为 <code>∨</code>。'
             + '✓ 表示由引擎计算；本页由 Deductrium 1 进度存档第三部分还原，非 Metamath 官方页面。</p></section>';
         $('#page').innerHTML = h;
         bindPageEvents();

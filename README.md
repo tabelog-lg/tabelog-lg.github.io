@@ -14,12 +14,13 @@
 │   ├── site.js           当前栏目高亮 + 统一页脚注入
 │   ├── tools.css         工具页专属外观
 │   └── tools-form.css    工具表单控件外观
-├── tools/                小工具集合（5 个工具 HTML 路径保持不变）
+├── tools/                小工具集合（4 个工具 + ddtparse 旧地址跳转页）
 │   ├── index.html        工具导航
 │   ├── *.html / *.js     当前版本工具
-│   └── original/         早期版本归档（只读）
+│   └── original/         其它工具的早期版本归档（只读）
 ├── googology/            Googology 中心页
-├── deductrium/           Deductrium 中心页 + HoTT 交互可视化
+├── deductrium/           Deductrium 中心页 + HoTT 交互可视化 + 证明浏览器
+│   ├── ddtparse/         ddtparse 当前版 / 独立历史页 / 历史快照目录
 │   └── walkthrough/      攻略存档旧路径（仅保留一张跳转提示页）
 └── OI/                   竞赛笔记（本轮重构忽略，内容保持原样）
 ```
@@ -46,20 +47,40 @@
 > 请从新站主页进入对应文档中心页。新站的页面生成、文件名规范化与 push 自动重建，
 > 见新仓库的 `README.md` 与 `ARCHIVE-GUIDE.md`。
 
+## ddtparse 已迁至 Deductrium 栏目
+
+进度文档解码 / 编码器（ddtparse）整体搬到 `deductrium/ddtparse/`：
+
+```
+deductrium/ddtparse/
+├── ddtparse.html          当前版本（多文件形态：外链共享 CSS + 6 个 JS 模块）
+├── ddtparse-history.html  独立历史版本页（17 份快照，含「打开最新版 →」按钮）
+├── ddtparse-*.js          按职责拆分的 6 个 JS 模块
+├── build-ddtparse.py      把当前版自动打包成历史单 HTML 的构建脚本
+└── history/               17 份历史版本，每份都是自包含单 HTML
+```
+
+- 历史版本一律是**单 HTML 文件**，当前版本是**另一份多文件形态**；v6.1 快照由
+  `python3 deductrium/ddtparse/build-ddtparse.py` 从当前版自动打包生成（`--check` 可检查幂等，
+  `--version v7` 可生成新版本快照）。
+- 独立历史页里的「打开最新版 →」始终指向当前版 `ddtparse.html`，不指向打包产物。
+- `tools/` 下不再有 ddtparse 的 JS 模块、构建脚本与历史文件；`tools/ddtparse.html` 只保留为**跳转页**
+  （1 秒后前往新地址，`?stay=1` 可停留）。`tools/index.html` 与 `tools/original/index.html` 已相应调整。
+
 ## 本轮重构要点
 
 1. **补上站点入口**：新增根级 `index.html` 门户与 `404.html`，把原先散落在 `tools/` 里的事实首页升级为真正的全站首页。
-2. **栏目拆分**：`googology/` 与 `deductrium/` 从 `tools/` 提升为根级独立栏目；`tools/index.html` 只保留 5 个工具与归档入口，中心页不再混在工具卡片里。
+2. **栏目拆分**：`googology/` 与 `deductrium/` 从 `tools/` 提升为根级独立栏目；`tools/index.html` 只保留 4 个工具与归档入口，中心页不再混在工具卡片里。
 3. **单一设计源**：原 `base.css` / `nav.css` / `tools.css` / `tools-form.css` 四层样式归并为 `assets/site.css`（含兼容旧类名的样式层）+ `assets/tools.css` + `assets/tools-form.css`，所有页面统一引用。
 4. **全站壳层统一**：顶栏、面包屑、页脚在所有内容页一致；`site.js` 按页面路径高亮当前栏目并向容器末尾注入统一页脚。顶栏与面包屑是静态 HTML，无 JS 时导航依然可用。
-5. **保留项**：`tools/` 下 5 个工具 HTML 的位置与功能逻辑不变；`tools/original/` 历史归档保持原样；`OI/` 目录本轮完全不动，仅在首页以「整理中」占位说明。
+5. **保留项**：`tools/` 下 4 个工具 HTML 的位置与功能逻辑不变；`ddtparse.html` 迁至 `deductrium/ddtparse/`，原位置保留为跳转页；`tools/original/` 历史归档保持原样；`OI/` 目录本轮完全不动，仅在首页以「整理中」占位说明。
 
 ## 约定
 
-- 工具页面地址（如 `tools/ddtparse.html`）固定，不做重定向或改名，已有收藏链接继续有效。
+- 当前 4 个工具页面地址固定，不做重定向或改名；`tools/ddtparse.html` 是例外，作为跳转页指向 `deductrium/ddtparse/ddtparse.html`，旧收藏链接继续有效。
 - 内容页的 `<head>` 只需引入 `assets/site.css` 与 `assets/site.js`（按目录层级写相对路径）；工具页额外引入 `assets/tools.css`、`assets/tools-form.css`。
 - `<body>` 上的 `data-section`（`home` / `tools` / `googology` / `deductrium` / `archive`）决定顶栏高亮项。
-- HoTT 可视化页是全屏交互演示，不引入全站样式，仅保留一个浮动返回链接。
+- HoTT 可视化页与 `deductrium/proof-browser.html` 都是自包含单 HTML：不引入全站样式，仅保留一个浮动返回链接。
 - 顶栏、面包屑与页脚已静态写入各 HTML；`site.js` 只负责高亮与在缺少页脚时补一个，站点无构建步骤、无生成脚本依赖。
 - 攻略存档的维护（新增 `.md`、自动改名、生成中心页）全部在独立仓库 `deductrium-walkthrough` 进行，原站只保留入口链接与跳转提示页。
 

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ddtparse 历史版本 · Deductrium</title>
+    <meta name="description" content="进度文档解码 / 编码器（ddtparse）的全部历史版本，每份都是可独立打开的单 HTML 文件。">
+    <link rel="stylesheet" href="../../assets/site.css">
+    <script src="../../assets/site.js" defer></script>
+    <style>
+        /* ===== 本页专属：版本条目列表 ===== */
+        .version-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .version-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 13.5px;
+            transition: all var(--transition);
+        }
+        .version-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .version-item .ver-tag {
+            flex: none;
+            min-width: 62px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-align: center;
+            font-family: var(--font-mono);
+            letter-spacing: 0.3px;
+        }
+        .version-item .ver-file {
+            flex: none;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            min-width: 200px;
+        }
+        .version-item .ver-desc {
+            flex: 1;
+            min-width: 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .version-item:hover .ver-file,
+        .version-item:hover .ver-desc {
+            color: var(--primary);
+        }
+        .version-item .ver-arrow {
+            flex: none;
+            opacity: 0.4;
+            transition: all var(--transition);
+        }
+        .version-item:hover .ver-arrow {
+            opacity: 1;
+            transform: translateX(2px);
+        }
+
+        /* 当前最新版高亮 */
+        .version-item.current {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+        .version-item.current .ver-tag {
+            background: var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .version-item { flex-wrap: wrap; gap: 8px; }
+            .version-item .ver-tag { min-width: 0; }
+            .version-item .ver-file {
+                flex: 1 1 100%;
+                order: 3;
+                min-width: 0;
+                padding-left: 2px;
+            }
+            .version-item .ver-desc {
+                flex: 1 1 100%;
+                order: 4;
+                padding-left: 2px;
+            }
+        }
+    
+        .wk-standalone-note { margin-bottom: 22px; }
+        .wk-back-line { margin-top: 18px; font-size: 13px; }
+        .wk-back-line a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .wk-back-line a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="page-nav has-site-nav" data-section="deductrium">
+    <header class="site-nav">
+        <a class="site-nav__brand" href="../../index.html">
+            <span class="site-nav__mark">t</span>
+            <span>tabelog<span class="site-nav__dot">.</span>local</span>
+        </a>
+        <nav class="site-nav__links" aria-label="主导航">
+            <a href="../../index.html" data-nav="home">首页</a>
+            <a href="../../tools/index.html" data-nav="tools">工具</a>
+            <a href="../../googology/index.html" data-nav="googology">Googology</a>
+            <a href="../../deductrium/index.html" data-nav="deductrium">Deductrium</a>
+            <a href="../../tools/original/index.html" data-nav="archive">归档</a>
+        </nav>
+        <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+    </header>
+
+    <div class="container">
+        <div class="site-crumb">
+            <a href="../../index.html">首页</a><span class="sep">›</span><a href="../index.html">Deductrium 相关</a><span class="sep">›</span><span class="cur">ddtparse 历史版本</span>
+        </div>
+
+        <div class="header">
+            <h1><span class="icon">📚</span> ddtparse 历史版本</h1>
+            <p>进度文档解码 / 编码器 · 17 份历史单文件快照 · 仅供回顾与对照</p>
+        </div>
+
+        <div class="note-box wk-standalone-note">
+            <span class="note-icon">💡</span>
+            <div>
+                下面每一个历史版本都是<strong>自包含的单 HTML 文件</strong>（CSS 与 JS 全部内联，可脱离本站单独打开）；
+                其中 v6.1 由 <code>build-ddtparse.py</code> 从当前版自动打包生成。
+                <strong>当前版本是另一份多文件形态</strong>（<code>ddtparse.html</code> + 6 个 JS 模块），请点右上「打开最新版 →」进入；
+                旧的 <code>tools/ddtparse.html</code> 保留为跳转页，收藏链接不会失效。
+            </div>
+        </div>
+
+        <section class="version-section" id="ddtparse-history">
+            <div class="section-header">
+                <h2>🔧 进度文档解码 / 编码器 <span class="badge">最新 v6.1</span></h2>
+                <a class="card-link primary" href="ddtparse.html">打开最新版 →</a>
+            </div>
+            <div class="version-list">
+
+
+                <a class="version-item current" href="history/ddtparse_v6.1.html">
+                    <span class="ver-tag">v6.1</span>
+                    <span class="ver-file">ddtparse_v6.1.html</span>
+                    <span class="ver-desc">重构：单文件脚本拆分为多个模块，功能不变；由构建脚本自动打包为单 HTML</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v6.html">
+                    <span class="ver-tag">v6</span>
+                    <span class="ver-file">ddtparse_v6.html</span>
+                    <span class="ver-desc">增加对 Deductrium 2 的支持</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v5.html">
+                    <span class="ver-tag">v5</span>
+                    <span class="ver-file">ddtparse_v5.html</span>
+                    <span class="ver-desc">增加搜索推理规则并递归搜索依赖推理规则</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v4.3.html">
+                    <span class="ver-tag">v4.3</span>
+                    <span class="ver-file">ddtparse_v4.3.html</span>
+                    <span class="ver-desc">重制页面 css</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v4.2.html">
+                    <span class="ver-tag">v4.2</span>
+                    <span class="ver-file">ddtparse_v4.2.html</span>
+                    <span class="ver-desc">修复名称映射表、修改依赖推理规则提取</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v4.1.html">
+                    <span class="ver-tag">v4.1</span>
+                    <span class="ver-file">ddtparse_v4.1.html</span>
+                    <span class="ver-desc">修复 mcmt 中的 # 会被识别为依赖推理规则的问题</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v4.html">
+                    <span class="ver-tag">v4</span>
+                    <span class="ver-file">ddtparse_v4.html</span>
+                    <span class="ver-desc">加入选项：证明项中加入自定义推理规则、排列表中加入定理内容、证明项中加入依赖推理规则</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v3.1.html">
+                    <span class="ver-tag">v3.1</span>
+                    <span class="ver-file">ddtparse_v3.1.html</span>
+                    <span class="ver-desc">增加谓词 / 函数 / 常量定义的证明项提取显示；重制并优化页面风格</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_completely_fixed.html">
+                    <span class="ver-tag">v3.1</span>
+                    <span class="ver-file">ddtparse_completely_fixed.html</span>
+                    <span class="ver-desc">同上（v3.1 的另一命名版本）</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v3.html">
+                    <span class="ver-tag">v3</span>
+                    <span class="ver-file">ddtparse_v3.html</span>
+                    <span class="ver-desc">加入类型层证明项提取与排列表显示</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_completely.html">
+                    <span class="ver-tag">v3</span>
+                    <span class="ver-file">ddtparse_completely.html</span>
+                    <span class="ver-desc">同上（v3 的另一命名版本）</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v2.2.html">
+                    <span class="ver-tag">v2.2</span>
+                    <span class="ver-file">ddtparse_v2.2.html</span>
+                    <span class="ver-desc">修复假设中的有序对被错误切分的问题</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_new.html">
+                    <span class="ver-tag">v2.2</span>
+                    <span class="ver-file">ddtparse_new.html</span>
+                    <span class="ver-desc">同上（v2.2 的另一命名版本）</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v2.1.html">
+                    <span class="ver-tag">v2.1</span>
+                    <span class="ver-file">ddtparse_v2.1.html</span>
+                    <span class="ver-desc">修复带有临时变量的证明项不会被提取的问题</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v2.html">
+                    <span class="ver-tag">v2</span>
+                    <span class="ver-file">ddtparse_v2.html</span>
+                    <span class="ver-desc">加入证明项提取功能</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse_v1.html">
+                    <span class="ver-tag">v1</span>
+                    <span class="ver-file">ddtparse_v1.html</span>
+                    <span class="ver-desc">存档编码-解码功能</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+
+                <a class="version-item" href="history/ddtparse.html">
+                    <span class="ver-tag">v1</span>
+                    <span class="ver-file">ddtparse.html</span>
+                    <span class="ver-desc">同上（v1 的另一命名版本）</span>
+                    <span class="ver-arrow">→</span>
+                </a>
+            </div>
+        </section>
+
+        <div class="wk-back-line">
+            <a href="../index.html">← 返回 Deductrium 相关</a> · <a href="ddtparse.html">打开当前版本 →</a>
+        </div>
+
+        <footer class="site-footer">
+            <span>© 2026 tabelog-lg · tabelog's local website</span>
+            <span class="site-footer__links">
+                <a href="../../index.html">首页</a>
+                <a href="../../tools/index.html">工具</a>
+                <a href="../../googology/index.html">Googology</a>
+                <a href="../../deductrium/index.html">Deductrium</a>
+                <a href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+            </span>
+        </footer>
+    </div>
+</body>
+</html>

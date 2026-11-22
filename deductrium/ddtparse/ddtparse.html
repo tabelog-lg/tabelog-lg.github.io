@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进度文档解码/编码器</title>
+    <link rel="stylesheet" href="../../assets/site.css">
+    <link rel="stylesheet" href="../../assets/tools.css">
+    <link rel="stylesheet" href="../../assets/tools-form.css">
+    <style>
+
+/* ===== 本页专属：文件上传区 + 尺寸微调 ===== */
+.main-area { margin-bottom: 20px; }
+.divider { margin: 22px 0 26px; }
+.textarea-wrapper textarea { min-height: 240px; font-size: 13.5px; }
+.textarea-wrapper textarea.output-area { min-height: 200px; }
+/* 按钮较多，横向排布 */
+.button-group { flex-direction: row; flex-wrap: wrap; min-width: 0; padding: 0; }
+.button-group .btn { flex: 1 1 160px; padding: 13px 20px; }
+
+/* 文件上传区（仅本页使用） */
+.file-zone {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin-bottom: 26px;
+}
+.file-upload-label {
+    flex: 1 1 260px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 24px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 2px dashed var(--primary-line);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--transition);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.file-upload-label:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    border-style: solid;
+    box-shadow: 0 4px 14px rgba(74, 108, 247, 0.3);
+}
+.file-upload-label:active { transform: scale(0.98); }
+.file-upload-label input[type="file"] { display: none; }
+
+@media (max-width: 768px) {
+    .file-zone { flex-direction: column; }
+    .button-group .btn { flex: 1 1 100%; }
+    .rule-search-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ===== 本页专属：推理规则搜索 ===== */
+.rule-search-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+}
+.rule-search-wrap {
+    position: relative;
+    flex: 1 1 260px;
+    min-width: 0;
+}
+#ruleSearchInput {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: #fafbfc;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: all var(--transition);
+}
+#ruleSearchInput:hover {
+    border-color: var(--primary-line);
+    background: #f5f7ff;
+}
+#ruleSearchInput:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1);
+    background: #fff;
+}
+#ruleSearchInput::placeholder {
+    font-family: inherit;
+    color: #9ca3af;
+    font-style: italic;
+    font-weight: 400;
+}
+/* 联想块：绝对定位在输入框下方，超高出现滚动条 */
+.rule-search-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    display: none;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+}
+.rule-search-box div {
+    padding: 9px 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background var(--transition), color var(--transition);
+}
+.rule-search-box div:hover,
+.rule-search-box div.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+.rule-search-box b {
+    color: var(--primary);
+    font-weight: 700;
+}
+.rule-search-box .rule-search-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    cursor: default;
+}
+.rule-search-box .rule-search-empty:hover {
+    background: none;
+    color: var(--text-secondary);
+}
+
+/* D2 编码时 mode 不一致的告警信息 */
+.info-message.warn {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    border-left-color: #ef6c00;
+    color: #e65100;
+}
+
+    </style>
+    <script src="ddtparse-data.js" defer></script>
+    <script src="ddtparse-lzstring.js" defer></script>
+    <script src="ddtparse-codec.js" defer></script>
+    <script src="ddtparse-ui.js" defer></script>
+    <script src="ddtparse-analysis.js" defer></script>
+    <script src="ddtparse-app.js" defer></script>
+    <script src="../../assets/site.js" defer></script>
+</head>
+<body class="page-ddtparse has-site-nav" data-section="deductrium">
+    <header class="site-nav">
+        <a class="site-nav__brand" href="../../index.html">
+            <span class="site-nav__mark">t</span>
+            <span>tabelog<span class="site-nav__dot">.</span>local</span>
+        </a>
+        <nav class="site-nav__links" aria-label="主导航">
+            <a href="../../index.html" data-nav="home">首页</a>
+            <a href="../../tools/index.html" data-nav="tools">工具</a>
+            <a href="../../googology/index.html" data-nav="googology">Googology</a>
+            <a href="../../deductrium/index.html" data-nav="deductrium">Deductrium</a>
+            <a href="../../tools/original/index.html" data-nav="archive">归档</a>
+        </nav>
+        <a class="site-nav__repo" href="https://github.com/tabelog-lg/tabelog-lg.github.io" target="_blank" rel="noopener">GitHub ↗</a>
+    </header>
+
+
+    <div class="container">
+        <div class="site-crumb">
+            <a href="../../index.html">首页</a><span class="sep">›</span><a href="../../tools/index.html">小工具集合</a><span class="sep">›</span><span class="cur">进度文档解码 / 编码器</span>
+        </div>
+
+        <!-- 标题 -->
+        <div class="header">
+            <h1>
+                <span class="icon">🔧</span> 进度文档解码 / 编码器
+            </h1>
+            <p>上传游戏进度文件，解码为可读文本 · 修改后重新编码并下载</p>
+        </div>
+
+        <!-- 游戏版本 -->
+        <div class="option-row">
+            <span class="option-label">游戏版本</span>
+            <select id="versionSelect">
+                <option value="ddt1" selected>Deductrium</option>
+                <option value="ddt2">Deductrium 2.0</option>
+            </select>
+            <span class="hint">💡 Deductrium 2.0 使用 LZString + JSON 进度格式</span>
+        </div>
+
+        <!-- 游戏模式 -->
+        <div class="option-row">
+            <span class="option-label">游戏模式</span>
+            <select id="modeSelect">
+                <option value="survival" selected>生存模式 (survival)</option>
+                <option value="creative">创造模式 (creative)</option>
+            </select>
+            <span class="hint">💡 编码 / 解码需使用相同的模式</span>
+        </div>
+
+        <!-- ★ 新增：证明项 / 排列表 选项 -->
+        <div class="option-row">
+            <span class="option-label">证明选项</span>
+            <div class="checkbox-group" id="proofOptionGroup">
+                <label class="checkbox-item" title="编码/提取证明项时，附带用户自定义的推理规则（mc, mf, mprd）">
+                    <input type="checkbox" id="chkCustomRules" checked>
+                    <span>在证明项中加入自定义推理规则</span>
+                </label>
+                <label class="checkbox-item" title="生成排列表时，在名称后加入定理内容显示">
+                    <input type="checkbox" id="chkContentDisplay" checked>
+                    <span>在排列表中加入定理内容显示</span>
+                </label>
+                <label class="checkbox-item" title="编码/提取证明项时，显示该推理规则依赖的推理规则">
+                    <input type="checkbox" id="chkDependentRules" checked>
+                    <span>在证明项中加入依赖推理规则</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="option-row">
+            <span class="option-label"></span>
+            <span class="hint">⚠ 选择 Deductrium 2.0 后，提取证明项 / 类型层证明项 / 展示排列表 / 规则搜索 均不适用</span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 文件操作区 -->
+        <div class="file-zone">
+            <label class="file-upload-label">
+                📂 上传进度文档文件
+                <input type="file" id="fileInput" accept=".txt,.json,.dat,.dt,text/plain,application/json,application/octet-stream">
+            </label>
+            <button id="btnDownload" class="btn btn-success" disabled>⬇️ 下载编码结果</button>
+        </div>
+
+        <!-- ★ 新增：推理规则搜索 -->
+        <div class="rule-search-row">
+            <span class="option-label">规则搜索</span>
+            <div class="rule-search-wrap">
+                <input id="ruleSearchInput" type="text" placeholder="输入推理规则名称…"
+                       autocomplete="off" spellcheck="false">
+                <div id="ruleSearchBox" class="rule-search-box"></div>
+            </div>
+            <button id="btnSearchRule" class="btn btn-soft">🔍 搜索</button>
+        </div>
+
+        <!-- 主区域：编码文档 / 解码文本 -->
+        <div class="main-area">
+            <div class="textarea-wrapper">
+                <label><span class="dot input-dot"></span> 编码文档（进度字符串）</label>
+                <textarea id="encodedText" placeholder="将编码进度文档粘贴到这里，或上传文件自动填充..." spellcheck="false"></textarea>
+            </div>
+            <div class="textarea-wrapper">
+                <label><span class="dot output-dot"></span> 解码后的文本（可编辑）</label>
+                <textarea id="jsonText" placeholder="点击“解码”按钮生成解码文本，可修改后重新编码..." spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- 输出框 -->
+        <div class="textarea-wrapper full-width">
+            <label><span class="dot proof-dot"></span> 输出框（证明项 / 类型层证明项 / 排列表）</label>
+            <textarea id="proofText" class="output-area" placeholder="点击下方按钮生成对应内容..." readonly spellcheck="false"></textarea>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="button-group">
+            <button id="btnDecode" class="btn btn-primary">🔓 解码 → 文本</button>
+            <button id="btnEncode" class="btn btn-secondary">🔒 编码 → 进度文档</button>
+            <button id="btnExtractProofs" class="btn btn-soft">📜 提取证明项</button>
+            <button id="btnExtractTypeProofs" class="btn btn-soft">🧩 提取类型层证明项</button>
+            <button id="btnShowArrangement" class="btn btn-soft">🌳 展示排列表</button>
+            <button id="btnClear" class="btn btn-clear">🧹 清空</button>
+        </div>
+
+        <!-- 错误 / 信息显示 -->
+        <div id="errorMsg" class="error-message"></div>
+        <div id="infoMsg" class="info-message"></div>
+
+        <div class="footer">
+            基于游戏内部序列化逻辑 | 不依赖游戏环境
+        </div>
+    </div>
+</body>
+
+<!--
+更新日志
+
+项目：进度文档解码 / 编码器（ddtparse）
+
+版本历史：
+- v1: ddtparse.html：存档编码-解码功能
+- v2: ddtparse_new.html：加入证明项提取功能
+- v2.1: 修复带有临时变量的证明项不会被提取的问题
+- v2.2: 修复假设中的有序对被错误切分的问题
+- v3: ddtparse_completely.html：加入类型层证明项提取与排列表显示
+- v3.1: ddtparse_completely_fixed.html：增加谓词、函数、常量定义的证明项提取显示；重制并优化页面风格
+- v4: 加入选项：在证明项中加入自定义推理规则、在排列表中加入定理内容显示、在证明项中加入依赖推理规则
+- v4.1: 修复 mcmt 中的 # 会被识别为依赖推理规则的问题
+- v4.2: 修复名称映射表、修改依赖推理规则提取
+- v4.3: 重制页面 css
+- v5: 增加搜索推理规则并递归搜索依赖推理规则
+- v6: 增加对 Deductrium 2 的支持
+- v6.1: 重构：将单文件脚本拆分为多个模块，功能不变；历史版本由构建脚本自动打包生成
+- 站点调整：当前版本迁至 deductrium/ddtparse/，历史版本独立成页 ddtparse-history.html
+-->
+
+</html>

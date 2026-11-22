@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="../assets/site.css">
     <style>
         /* ===== 本页专属：链接卡片 / 紧凑链接列表 ===== */
+        .wk-history-line {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        .wk-history-line a {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .wk-history-line a:hover { text-decoration: underline; }
         .link-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -426,7 +436,7 @@
                     <span class="link-arrow">→</span>
                 </a>
 
-                <a class="link-card" href="../tools/ddtparse.html">
+                <a class="link-card" href="ddtparse/ddtparse.html">
                     <span class="link-icon">🔧</span>
                     <span class="link-body">
                         <span class="link-title">进度文档解码 / 编码器（ddtparse v6.1）</span>
@@ -435,6 +445,9 @@
                     <span class="link-arrow">→</span>
                 </a>
 
+            </div>
+            <div class="wk-history-line">
+                <a href="ddtparse/ddtparse-history.html">📚 ddtparse 历史版本（17 份单文件快照）→</a>
             </div>
         </section>
 
